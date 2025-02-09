@@ -1,0 +1,18 @@
+{
+  "name": "mongodb-query-language",
+  "description": "",
+  "version": "0.0.1",
+  "keywords": [],
+  "author": "rfumic",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+      "build": "tsup"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3"
+  }
+}
