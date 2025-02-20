@@ -10,7 +10,7 @@
         "declaration": true,
         "isolatedModules": true,
         "noEmit": true,
-        "noUncheckedIndexedAcess": true,
+        "noUncheckedIndexedAccess": true,
         "outDir": "dist"
     },
     "include": ["src"],
