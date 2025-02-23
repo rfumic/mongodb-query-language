@@ -6,8 +6,8 @@ const TOKEN_TYPE = {
 	EQUALS: "=",
 	LT: "<",
 	GT: ">",
-	LTE: "<",
-	GTE: ">",
+	LTE: "<=",
+	GTE: ">=",
 
 	FIELD: "FIELD",
 	INT: "INT",
@@ -18,7 +18,7 @@ const TOKEN_TYPE = {
 
 export type TokenType = keyof typeof TOKEN_TYPE;
 
-export class Token {
-	type?: TokenType;
-	literal?: string;
-}
+export type Token = {
+	type: TokenType;
+	literal: string;
+};
