@@ -11,16 +11,10 @@ describe("tokenizer", () => {
 				{ expectedType: "COMMA", expectedLiteral: "," },
 				{ expectedType: "EOF", expectedLiteral: "" },
 			];
-
-			const tokenizer = new Tokenizer(input);
-			for (const { expectedType, expectedLiteral } of expectedTokens) {
-				const token = tokenizer.nextToken();
-				expect(token?.type).toBe(expectedType);
-				expect(token?.literal).toBe(expectedLiteral);
-			}
+			testTokens(input, expectedTokens);
 		});
 		test("nextToken() should correctly tokenize a full input string v2", () => {
-			const input = "(foo > 12345) AND (bar = true)";
+			const input = "(foo > 12345) AND (bar = 67)";
 			const expectedTokens = [
 				{ expectedType: "LPAREN", expectedLiteral: "(" },
 				{ expectedType: "FIELD", expectedLiteral: "foo" },
@@ -31,17 +25,23 @@ describe("tokenizer", () => {
 				{ expectedType: "LPAREN", expectedLiteral: "(" },
 				{ expectedType: "FIELD", expectedLiteral: "bar" },
 				{ expectedType: "EQUALS", expectedLiteral: "=" },
-				{ expectedType: "BOOLEAN", expectedLiteral: "true" },
+				{ expectedType: "INT", expectedLiteral: "67" },
 				{ expectedType: "RPAREN", expectedLiteral: ")" },
 				{ expectedType: "EOF", expectedLiteral: "" },
 			];
-
-			const tokenizer = new Tokenizer(input);
-			for (const { expectedType, expectedLiteral } of expectedTokens) {
-				const token = tokenizer.nextToken();
-				expect(token?.type).toBe(expectedType);
-				expect(token?.literal).toBe(expectedLiteral);
-			}
+			testTokens(input, expectedTokens);
 		});
 	});
 });
+
+function testTokens(
+	input: string,
+	expectedTokens: { expectedType: string; expectedLiteral: string }[],
+) {
+	const tokenizer = new Tokenizer(input);
+	for (const { expectedType, expectedLiteral } of expectedTokens) {
+		const token = tokenizer.nextToken();
+		expect(token?.type).toBe(expectedType);
+		expect(token?.literal).toBe(expectedLiteral);
+	}
+}

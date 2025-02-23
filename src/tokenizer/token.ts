@@ -12,6 +12,8 @@ const TOKEN_TYPE = {
 	FIELD: "FIELD",
 	INT: "INT",
 
+	AND: "AND",
+
 	UNKNOWN: "UNKNOWN",
 	EOF: "EOF",
 } as const;
@@ -22,3 +24,11 @@ export type Token = {
 	type: TokenType;
 	literal: string;
 };
+
+export const keywords: Record<string, TokenType> = {
+	AND: "AND",
+} as const;
+
+export function getIdentifierType(identifier: string) {
+	return keywords[identifier] ?? "FIELD";
+}
