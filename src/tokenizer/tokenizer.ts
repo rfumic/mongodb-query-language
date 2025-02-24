@@ -39,15 +39,25 @@ export class Tokenizer {
 				break;
 			}
 			case "=": {
-				token = { type: "EQUALS", literal: this.currentChar };
+				token = { type: "EQ", literal: this.currentChar };
 				break;
 			}
 			case "<": {
-				token = { type: "LT", literal: this.currentChar };
+				if (this.peek() === "=") {
+					this.readChar();
+					token = { type: "LTE", literal: "<=" };
+				} else {
+					token = { type: "LT", literal: this.currentChar };
+				}
 				break;
 			}
 			case ">": {
-				token = { type: "GT", literal: this.currentChar };
+				if (this.peek() === "=") {
+					this.readChar();
+					token = { type: "GTE", literal: ">=" };
+				} else {
+					token = { type: "GT", literal: this.currentChar };
+				}
 				break;
 			}
 			case "": {
@@ -55,6 +65,11 @@ export class Tokenizer {
 				break;
 			}
 			default: {
+				if (this.currentChar === "!" && this.peek() === "=") {
+					this.readChar();
+					token = { type: "NEQ", literal: "!=" };
+					break;
+				}
 				if (isLetter(this.currentChar)) {
 					const literal = this.readIdentifier();
 					token = { type: getIdentifierType(literal), literal: literal };
@@ -91,5 +106,12 @@ export class Tokenizer {
 		while (isWhitespace(this.currentChar)) {
 			this.readChar();
 		}
+	}
+
+	private peek() {
+		if (this.readPosition >= this.input.length) {
+			return "";
+		}
+		return this.input[this.readPosition];
 	}
 }

@@ -3,7 +3,8 @@ const TOKEN_TYPE = {
 	LPAREN: "(",
 	RPAREN: ")",
 
-	EQUALS: "=",
+	EQ: "=",
+	NEQ: "!=",
 	LT: "<",
 	GT: ">",
 	LTE: "<=",

@@ -1,36 +1,56 @@
 import { Tokenizer } from "./tokenizer";
 
-describe("tokenizer", () => {
-	describe("tokenizer", () => {
-		test("nextToken() should correctly tokenize a full input string", () => {
-			const input = "=(),";
-			const expectedTokens = [
-				{ expectedType: "EQUALS", expectedLiteral: "=" },
-				{ expectedType: "LPAREN", expectedLiteral: "(" },
-				{ expectedType: "RPAREN", expectedLiteral: ")" },
-				{ expectedType: "COMMA", expectedLiteral: "," },
-				{ expectedType: "EOF", expectedLiteral: "" },
-			];
-			testTokens(input, expectedTokens);
-		});
-		test("nextToken() should correctly tokenize a full input string v2", () => {
-			const input = "(foo > 12345) AND (bar = 67)";
-			const expectedTokens = [
-				{ expectedType: "LPAREN", expectedLiteral: "(" },
-				{ expectedType: "FIELD", expectedLiteral: "foo" },
-				{ expectedType: "GT", expectedLiteral: ">" },
-				{ expectedType: "INT", expectedLiteral: "12345" },
-				{ expectedType: "RPAREN", expectedLiteral: ")" },
-				{ expectedType: "AND", expectedLiteral: "AND" },
-				{ expectedType: "LPAREN", expectedLiteral: "(" },
-				{ expectedType: "FIELD", expectedLiteral: "bar" },
-				{ expectedType: "EQUALS", expectedLiteral: "=" },
-				{ expectedType: "INT", expectedLiteral: "67" },
-				{ expectedType: "RPAREN", expectedLiteral: ")" },
-				{ expectedType: "EOF", expectedLiteral: "" },
-			];
-			testTokens(input, expectedTokens);
-		});
+describe("Tokenizer", () => {
+	test("should tokenize basic symbols", () => {
+		const input = "=(),";
+		const expectedTokens = [
+			{ expectedType: "EQ", expectedLiteral: "=" },
+			{ expectedType: "LPAREN", expectedLiteral: "(" },
+			{ expectedType: "RPAREN", expectedLiteral: ")" },
+			{ expectedType: "COMMA", expectedLiteral: "," },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input, expectedTokens);
+	});
+
+	test("should tokenize a simple expression with comparison and logical operator", () => {
+		const input = "(foo > 12345) AND (bar = 67)";
+		const expectedTokens = [
+			{ expectedType: "LPAREN", expectedLiteral: "(" },
+			{ expectedType: "FIELD", expectedLiteral: "foo" },
+			{ expectedType: "GT", expectedLiteral: ">" },
+			{ expectedType: "INT", expectedLiteral: "12345" },
+			{ expectedType: "RPAREN", expectedLiteral: ")" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "LPAREN", expectedLiteral: "(" },
+			{ expectedType: "FIELD", expectedLiteral: "bar" },
+			{ expectedType: "EQ", expectedLiteral: "=" },
+			{ expectedType: "INT", expectedLiteral: "67" },
+			{ expectedType: "RPAREN", expectedLiteral: ")" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input, expectedTokens);
+	});
+
+	test("should tokenize a multi-line expression with multiple operators", () => {
+		const input = `foo >= 12345 AND bar <= 67 AND
+        baz != 9999
+        `;
+		const expectedTokens = [
+			{ expectedType: "FIELD", expectedLiteral: "foo" },
+			{ expectedType: "GTE", expectedLiteral: ">=" },
+			{ expectedType: "INT", expectedLiteral: "12345" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "bar" },
+			{ expectedType: "LTE", expectedLiteral: "<=" },
+			{ expectedType: "INT", expectedLiteral: "67" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "baz" },
+			{ expectedType: "NEQ", expectedLiteral: "!=" },
+			{ expectedType: "INT", expectedLiteral: "9999" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input, expectedTokens);
 	});
 });
 
