@@ -29,6 +29,13 @@ const TOKEN_TYPE = {
 	ANY: "ANY",
 	SIZE: "SIZE",
 
+	// bit operators
+	BIT: "BIT",
+	ANY_CLEAR: "ANY_CLEAR",
+	ANY_SET: "ANY_SET",
+	ALL_CLEAR: "ALL_CLEAR",
+	ALL_SET: "ALL_SET",
+
 	// type keywords
 	INT_KEYWORD: "int",
 
@@ -59,6 +66,11 @@ export const keywords: Record<string, TokenType> = {
 	CONTAINS: "CONTAINS",
 	ANY: "ANY",
 	SIZE: "SIZE",
+	BIT: "BIT",
+	ANY_CLEAR: "ANY_CLEAR",
+	ANY_SET: "ANY_SET",
+	ALL_CLEAR: "ALL_CLEAR",
+	ALL_SET: "ALL_SET",
 
 	int: "INT_KEYWORD",
 } as const;

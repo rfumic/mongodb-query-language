@@ -159,6 +159,110 @@ describe("Tokenizer", () => {
 
 		testTokens(input, expectedTokens);
 	});
+
+	test("should tokenize $bitsAllSet (BIT ALL_SET) correctly", () => {
+		const input1 = "field BIT ALL_SET 5";
+		const expectedTokens1 = [
+			{ expectedType: "FIELD", expectedLiteral: "field" },
+			{ expectedType: "BIT", expectedLiteral: "BIT" },
+			{ expectedType: "ALL_SET", expectedLiteral: "ALL_SET" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "5" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input1, expectedTokens1);
+
+		const input2 = "field BIT ALL_SET (1, 3)";
+		const expectedTokens2 = [
+			{ expectedType: "FIELD", expectedLiteral: "field" },
+			{ expectedType: "BIT", expectedLiteral: "BIT" },
+			{ expectedType: "ALL_SET", expectedLiteral: "ALL_SET" },
+			{ expectedType: "LPAREN", expectedLiteral: "(" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "1" },
+			{ expectedType: "COMMA", expectedLiteral: "," },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "3" },
+			{ expectedType: "RPAREN", expectedLiteral: ")" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input2, expectedTokens2);
+	});
+
+	test("should tokenize $bitsAllClear (BIT ALL_CLEAR) correctly", () => {
+		const input1 = "field BIT ALL_CLEAR 5";
+		const expectedTokens1 = [
+			{ expectedType: "FIELD", expectedLiteral: "field" },
+			{ expectedType: "BIT", expectedLiteral: "BIT" },
+			{ expectedType: "ALL_CLEAR", expectedLiteral: "ALL_CLEAR" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "5" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input1, expectedTokens1);
+
+		const input2 = "field BIT ALL_CLEAR (1, 3)";
+		const expectedTokens2 = [
+			{ expectedType: "FIELD", expectedLiteral: "field" },
+			{ expectedType: "BIT", expectedLiteral: "BIT" },
+			{ expectedType: "ALL_CLEAR", expectedLiteral: "ALL_CLEAR" },
+			{ expectedType: "LPAREN", expectedLiteral: "(" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "1" },
+			{ expectedType: "COMMA", expectedLiteral: "," },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "3" },
+			{ expectedType: "RPAREN", expectedLiteral: ")" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input2, expectedTokens2);
+	});
+
+	test("should tokenize $bitsAnySet (BIT ANY_SET) correctly", () => {
+		const input1 = "field BIT ANY_SET 5";
+		const expectedTokens1 = [
+			{ expectedType: "FIELD", expectedLiteral: "field" },
+			{ expectedType: "BIT", expectedLiteral: "BIT" },
+			{ expectedType: "ANY_SET", expectedLiteral: "ANY_SET" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "5" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input1, expectedTokens1);
+
+		const input2 = "field BIT ANY_SET (1, 3)";
+		const expectedTokens2 = [
+			{ expectedType: "FIELD", expectedLiteral: "field" },
+			{ expectedType: "BIT", expectedLiteral: "BIT" },
+			{ expectedType: "ANY_SET", expectedLiteral: "ANY_SET" },
+			{ expectedType: "LPAREN", expectedLiteral: "(" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "1" },
+			{ expectedType: "COMMA", expectedLiteral: "," },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "3" },
+			{ expectedType: "RPAREN", expectedLiteral: ")" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input2, expectedTokens2);
+	});
+
+	test("should tokenize $bitsAnyClear (BIT ANY_CLEAR) correctly", () => {
+		const input1 = "field BIT ANY_CLEAR 5";
+		const expectedTokens1 = [
+			{ expectedType: "FIELD", expectedLiteral: "field" },
+			{ expectedType: "BIT", expectedLiteral: "BIT" },
+			{ expectedType: "ANY_CLEAR", expectedLiteral: "ANY_CLEAR" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "5" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input1, expectedTokens1);
+
+		const input2 = "field BIT ANY_CLEAR (1, 3)";
+		const expectedTokens2 = [
+			{ expectedType: "FIELD", expectedLiteral: "field" },
+			{ expectedType: "BIT", expectedLiteral: "BIT" },
+			{ expectedType: "ANY_CLEAR", expectedLiteral: "ANY_CLEAR" },
+			{ expectedType: "LPAREN", expectedLiteral: "(" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "1" },
+			{ expectedType: "COMMA", expectedLiteral: "," },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "3" },
+			{ expectedType: "RPAREN", expectedLiteral: ")" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input2, expectedTokens2);
+	});
 });
 
 function testTokens(
