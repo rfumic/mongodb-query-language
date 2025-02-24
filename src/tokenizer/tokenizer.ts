@@ -77,7 +77,7 @@ export class Tokenizer {
 				}
 
 				if (isDigit(this.currentChar)) {
-					token = { type: "INT", literal: this.readNumber() };
+					token = { type: "INT_LITERAL", literal: this.readNumber() };
 					return token;
 				}
 				token = { type: "UNKNOWN", literal: this.currentChar };

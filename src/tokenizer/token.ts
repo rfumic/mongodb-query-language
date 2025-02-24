@@ -3,17 +3,37 @@ const TOKEN_TYPE = {
 	LPAREN: "(",
 	RPAREN: ")",
 
+	// comparison operators
 	EQ: "=",
 	NEQ: "!=",
 	LT: "<",
 	GT: ">",
 	LTE: "<=",
 	GTE: ">=",
+	IN: "IN",
+
+	// logical operators
+	AND: "AND",
+	NOT: "NOT",
+	OR: "OR",
+	NOR: "NOR",
+	IS: "IS",
+	HAS: "HAS",
+
+	// evaluation operators
+	MOD: "MOD",
+	MATCHES: "MATCHES",
+
+	// array operators
+	CONTAINS: "CONTAINS",
+	ANY: "ANY",
+	SIZE: "SIZE",
+
+	// type keywords
+	INT_KEYWORD: "int",
 
 	FIELD: "FIELD",
-	INT: "INT",
-
-	AND: "AND",
+	INT_LITERAL: "INT_LITERAL",
 
 	UNKNOWN: "UNKNOWN",
 	EOF: "EOF",
@@ -28,6 +48,19 @@ export type Token = {
 
 export const keywords: Record<string, TokenType> = {
 	AND: "AND",
+	NOT: "NOT",
+	OR: "OR",
+	NOR: "NOR",
+	IN: "IN",
+	IS: "IS",
+	HAS: "HAS",
+	MOD: "MOD",
+	MATCHES: "MATCHES",
+	CONTAINS: "CONTAINS",
+	ANY: "ANY",
+	SIZE: "SIZE",
+
+	int: "INT_KEYWORD",
 } as const;
 
 export function getIdentifierType(identifier: string) {
