@@ -11,6 +11,7 @@ const TOKEN_TYPE = {
 	LTE: "<=",
 	GTE: ">=",
 	IN: "IN",
+	NOT_IN: "NOT_IN",
 
 	// logical operators
 	AND: "AND",
@@ -59,6 +60,7 @@ export const keywords: Record<string, TokenType> = {
 	OR: "OR",
 	NOR: "NOR",
 	IN: "IN",
+	NOT_IN: "NOT_IN",
 	IS: "IS",
 	HAS: "HAS",
 	MOD: "MOD",
