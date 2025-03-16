@@ -88,7 +88,7 @@ export class Tokenizer {
 	}
 	private readIdentifier() {
 		const position = this.currentCharPosition;
-		while (isLetter(this.currentChar)) {
+        while (isLetter(this.currentChar) || isDigit(this.currentChar)) {
 			this.readChar();
 		}
 		return this.input.substring(position, this.currentCharPosition);

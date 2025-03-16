@@ -13,6 +13,21 @@ describe("Tokenizer", () => {
 		testTokens(input, expectedTokens);
 	});
 
+	test("should tokenize identifiers with numbers in them", () => {
+		const input = "foo-1 > 12345 AND foo2_2 = 67";
+		const expectedTokens = [
+			{ expectedType: "FIELD", expectedLiteral: "foo-1" },
+			{ expectedType: "GT", expectedLiteral: ">" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "12345" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "foo2_2" },
+			{ expectedType: "EQ", expectedLiteral: "=" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "67" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input, expectedTokens);
+	});
+
 	test("should tokenize a simple expression with comparison and logical operator", () => {
 		const input = "(foo > 12345) AND (bar = 67)";
 		const expectedTokens = [

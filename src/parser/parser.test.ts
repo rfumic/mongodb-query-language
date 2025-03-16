@@ -145,7 +145,6 @@ describe("Parser", () => {
             const parser = new Parser(tokenizer);
 
             const query = parser.parse();
-            console.log(input, query)
             testBitExpression(query);
         }
     });
