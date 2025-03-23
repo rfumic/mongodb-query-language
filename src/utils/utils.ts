@@ -17,3 +17,7 @@ export function isDigit(char: string) {
 export function isWhitespace(char: string) {
     return char === " " || char === "\t" || char === "\n" || char === "\r";
 }
+
+export function isHexDigit(char: string) {
+    return /^[0-9a-fA-F]$/.test(char);
+}

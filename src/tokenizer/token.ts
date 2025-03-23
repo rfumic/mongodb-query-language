@@ -39,9 +39,11 @@ const TOKEN_TYPE = {
 
 	// type keywords
 	INT_KEYWORD: "int",
+	FLOAT_KEYWORD: "float",
 
 	FIELD: "FIELD",
 	INT_LITERAL: "INT_LITERAL",
+	FLOAT_LITERAL: "FLOAT_LITERAL",
 	STRING_LITERAL: "STRING_LITERAL",
 
 	UNKNOWN: "UNKNOWN",
@@ -76,6 +78,7 @@ export const keywords: Record<string, TokenType> = {
 	ALL_SET: "ALL_SET",
 
 	int: "INT_KEYWORD",
+	float: "FLOAT_KEYWORD",
 } as const;
 
 export function getIdentifierType(identifier: string) {

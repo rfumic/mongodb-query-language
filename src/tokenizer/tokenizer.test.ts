@@ -42,6 +42,67 @@ describe("Tokenizer", () => {
 		];
 		testTokens(input, expectedTokens);
 	});
+
+	test("should tokenize negative numbers", () => {
+		const input = 'foo < -58 AND bar >= 9';
+		const expectedTokens = [
+			{ expectedType: "FIELD", expectedLiteral: "foo" },
+			{ expectedType: "LT", expectedLiteral: "<" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "-58" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "bar" },
+			{ expectedType: "GTE", expectedLiteral: ">=" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "9" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input, expectedTokens);
+	});
+
+	test("should tokenize binary numbers", () => {
+		const input = 'foo < 0b0110 AND bar >= -0b10011';
+		const expectedTokens = [
+			{ expectedType: "FIELD", expectedLiteral: "foo" },
+			{ expectedType: "LT", expectedLiteral: "<" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "0110" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "bar" },
+			{ expectedType: "GTE", expectedLiteral: ">=" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "-10011" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input, expectedTokens);
+	});
+
+    test("should tokenize hexadecimal numbers", () => {
+        const input = "foo < 0xC0FF AND bar >= -0x1A3E";
+        const expectedTokens = [
+            { expectedType: "FIELD", expectedLiteral: "foo" },
+            { expectedType: "LT", expectedLiteral: "<" },
+            { expectedType: "INT_LITERAL", expectedLiteral: "0xC0FF" },
+            { expectedType: "AND", expectedLiteral: "AND" },
+            { expectedType: "FIELD", expectedLiteral: "bar" },
+            { expectedType: "GTE", expectedLiteral: ">=" },
+            { expectedType: "INT_LITERAL", expectedLiteral: "-0x1A3E" },
+            { expectedType: "EOF", expectedLiteral: "" },
+        ];
+        testTokens(input, expectedTokens);
+    });
+
+	test("should tokenize floating point numbers", () => {
+		const input = 'foo < 3.1415926 AND bar >= -42.06';
+		const expectedTokens = [
+			{ expectedType: "FIELD", expectedLiteral: "foo" },
+			{ expectedType: "LT", expectedLiteral: "<" },
+			{ expectedType: "FLOAT_LITERAL", expectedLiteral: "3.1415926" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "bar" },
+			{ expectedType: "GTE", expectedLiteral: ">=" },
+			{ expectedType: "FLOAT_LITERAL", expectedLiteral: "-42.06" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input, expectedTokens);
+	});
+
 	test("should tokenize a simple expression with comparison and logical operator", () => {
 		const input = "(foo > 12345) AND (bar = 67)";
 		const expectedTokens = [

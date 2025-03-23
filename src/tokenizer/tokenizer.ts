@@ -1,4 +1,4 @@
-import { isDigit, isLetter, isWhitespace } from "../utils/utils";
+import { isDigit, isHexDigit, isLetter, isWhitespace } from "../utils/utils";
 import { getIdentifierType, type Token } from "./token";
 
 export class Tokenizer {
@@ -78,16 +78,16 @@ export class Tokenizer {
 					token = { type: "NEQ", literal: "!=" };
 					break;
 				}
+				if (isDigit(this.currentChar) || this.currentChar === "-") {
+					return this.readNumber();
+				}
+
 				if (isLetter(this.currentChar)) {
 					const literal = this.readIdentifier();
 					token = { type: getIdentifierType(literal), literal: literal };
 					return token;
 				}
 
-				if (isDigit(this.currentChar)) {
-					token = { type: "INT_LITERAL", literal: this.readNumber() };
-					return token;
-				}
 				token = { type: "UNKNOWN", literal: this.currentChar };
 			}
 		}
@@ -102,24 +102,65 @@ export class Tokenizer {
 		return this.input.substring(position, this.currentCharPosition);
 	}
 
-    private readString(stringDelimiter = '"') {
+	private readString(stringDelimiter = '"') {
 		const position = this.currentCharPosition + 1;
 		do {
 			this.readChar();
-        } while (this.currentChar !== stringDelimiter && this.currentChar !== "");
+		} while (this.currentChar !== stringDelimiter && this.currentChar !== "");
 
 		return this.input.substring(position, this.currentCharPosition);
 	}
 
-	private readNumber() {
-		const position = this.currentCharPosition;
-		while (isDigit(this.currentChar)) {
-			this.readChar();
-		}
-		return this.input.substring(position, this.currentCharPosition);
-	}
+	private readNumber(): Token {
+        let startPosition = this.currentCharPosition;
+        const isNegative = this.currentChar === "-";
 
-	private eatWhitespace() {
+        if (isNegative) {
+            this.readChar();
+        }
+
+        let isFloatingPoint = false;
+        let skipFloatingPointCheck = false;
+
+        // binary numbers
+        if (this.currentChar === "0" && this.peek() === "b") {
+            this.readChar();
+            this.readChar();
+            startPosition = this.currentCharPosition;
+            while (this.currentChar === "0" || this.currentChar === "1") {
+                this.readChar();
+            }
+
+            return {
+                type: "INT_LITERAL",
+                literal: `${isNegative ? "-" : ""}${this.input.substring(startPosition, this.currentCharPosition)}`,
+            };
+        }
+
+        if (this.currentChar === "0" && this.peek() === "x") {
+            this.readChar();
+            this.readChar();
+            skipFloatingPointCheck = true;
+        }
+
+        while (
+            isDigit(this.currentChar) ||
+            isHexDigit(this.currentChar) ||
+            (!skipFloatingPointCheck && !isFloatingPoint && this.currentChar === ".")
+        ) {
+            if (this.currentChar === ".") {
+                isFloatingPoint = true;
+            }
+            this.readChar();
+        }
+
+        return {
+            type: isFloatingPoint ? "FLOAT_LITERAL" : "INT_LITERAL",
+            literal: this.input.substring(startPosition, this.currentCharPosition),
+        };
+    }
+
+    private eatWhitespace() {
 		while (isWhitespace(this.currentChar)) {
 			this.readChar();
 		}

@@ -233,10 +233,11 @@ export class Parser {
     }
     private parseNumber(): number {
         if (this.currentToken?.type === "INT_LITERAL") {
-            const value = Number.parseInt(this.currentToken.literal, 10);
+            const value = Number.parseInt(this.currentToken.literal, 10); // TODO: handle binary and hexadecimal
             this.eat("INT_LITERAL");
             return value;
         }
+        // TODO: add float parsing here
         throw new Error(`Expected a number, but got: ${this.currentToken?.type}`);
     }
 
