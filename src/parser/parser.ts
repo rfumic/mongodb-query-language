@@ -98,18 +98,8 @@ export class Parser {
 
         while (
             this.currentToken &&
-            (this.currentToken.type === "EQ" ||
-                this.currentToken.type === "GT" ||
-                this.currentToken.type === "LT" ||
-                this.currentToken.type === "GTE" ||
-                this.currentToken.type === "LTE" ||
-                this.currentToken.type === "NEQ" ||
-                this.currentToken.type === "IN" ||
-                this.currentToken.type === "NOT_IN" ||
-                this.currentToken.type === "MOD" ||
-                this.currentToken.type === "CONTAINS" ||
-                this.currentToken.type === "SIZE" ||
-                this.currentToken.type === "BIT")
+            ["EQ", "GT", "LT", "GTE", "LTE", "NEQ", "IN", "NOT_IN", "MOD", "CONTAINS", "SIZE", "BIT"]
+                .includes(this.currentToken.type)
         ) {
             const token = this.currentToken;
             this.eat(token.type);
@@ -204,7 +194,7 @@ export class Parser {
                 }
 
                 if (this.isTokenType("INT_LITERAL")) {
-                    bits.push(Number.parseInt(this.currentToken.literal, 10));
+                    bits.push(Number.parseInt(this.currentToken.literal, 10)); // TODO: handle binary and hexadecimal
                     this.eat("INT_LITERAL");
                 } else if (this.isTokenType("COMMA")) {
                     this.eat("COMMA");
@@ -224,7 +214,7 @@ export class Parser {
         }
 
         if (this.currentToken?.type === "INT_LITERAL") {
-            const bit = Number.parseInt(this.currentToken.literal, 10);
+            const bit = Number.parseInt(this.currentToken.literal, 10); // TODO: handle binary and hexadecimal
             this.eat("INT_LITERAL");
             return bit;
         }
@@ -247,15 +237,15 @@ export class Parser {
             if (this.currentToken.type === "INT_LITERAL") {
                 values.push({
                     type: "Literal",
-                    value: Number.parseInt(this.currentToken.literal, 10),
+                    value: Number.parseInt(this.currentToken.literal, 10), // TODO: handle binary and hexadecimal
                 } as Literal);
                 this.eat("INT_LITERAL");
-                // } else if (this.currentToken.type === "STRING_LITERAL") { // TODO: fix after implementing strings
-                //     values.push({
-                //         type: "Literal",
-                //         value: this.currentToken.literal,
-                //     } as Literal);
-                //     this.eat("STRING_LITERAL");
+            } else if (this.currentToken.type === "STRING_LITERAL") {
+                values.push({
+                    type: "Literal",
+                    value: this.currentToken.literal,
+                } as Literal);
+                this.eat("STRING_LITERAL");
             } else if (this.currentToken.type === "COMMA") {
                 this.eat("COMMA");
             } else {
@@ -297,13 +287,23 @@ export class Parser {
                 name: fieldName,
             } as Identifier;
         }
+
         if (token?.type === "INT_LITERAL") {
             this.eat("INT_LITERAL");
             return {
                 type: "Literal",
-                value: Number.parseInt(token.literal, 10),
+                value: Number.parseInt(token.literal, 10), // TODO: handle binary and hexadecimal
             } as Literal;
         }
+
+        if (token?.type === "STRING_LITERAL") {
+            this.eat("STRING_LITERAL");
+            return {
+                type: "Literal",
+                value: token.literal,
+            } as Literal;
+        }
+
         if (token?.type === "LPAREN") {
             this.eat("LPAREN");
             const node = this.parseExpression();

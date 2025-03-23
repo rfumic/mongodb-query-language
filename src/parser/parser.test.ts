@@ -33,6 +33,23 @@ describe("Parser", () => {
         }
     });
 
+    test("Test string comparison parsing", () => {
+        const inputs = [
+            'field_a = "foo"',
+            "field_b = 'bar'",
+            "field_c != 'baz'",
+        ];
+
+        for (const input of inputs) {
+            const tokenizer = new Tokenizer(input);
+            const parser = new Parser(tokenizer);
+
+            const query = parser.parse();
+
+            testComparisonExpression(query);
+        }
+    });
+
     test("Test IN and NOT IN", () => {
         const inputs = [
             "field_a IN (11, 21)",
@@ -93,6 +110,19 @@ describe("Parser", () => {
 
     test("Test CONTAINS parsing", () => {
         const inputs = ["array_field CONTAINS (1,8,7)", "array_field CONTAINS (8)"];
+
+        for (const input of inputs) {
+            const tokenizer = new Tokenizer(input);
+            const parser = new Parser(tokenizer);
+
+            const query = parser.parse();
+
+            testContainsExpression(query);
+        }
+    });
+
+    test("Test CONTAINS parsing with strings", () => {
+        const inputs = [`array_field CONTAINS ("foo",'bar', "baz")`, `array_field CONTAINS ("foobar")`];
 
         for (const input of inputs) {
             const tokenizer = new Tokenizer(input);
