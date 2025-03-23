@@ -28,6 +28,20 @@ describe("Tokenizer", () => {
 		testTokens(input, expectedTokens);
 	});
 
+	test("should tokenize strings", () => {
+		const input = `name = "John" AND last_name = 'Doe'`;
+		const expectedTokens = [
+			{ expectedType: "FIELD", expectedLiteral: "name" },
+			{ expectedType: "EQ", expectedLiteral: "=" },
+			{ expectedType: "STRING_LITERAL", expectedLiteral: "John" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "last_name" },
+			{ expectedType: "EQ", expectedLiteral: "=" },
+			{ expectedType: "STRING_LITERAL", expectedLiteral: "Doe" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input, expectedTokens);
+	});
 	test("should tokenize a simple expression with comparison and logical operator", () => {
 		const input = "(foo > 12345) AND (bar = 67)";
 		const expectedTokens = [

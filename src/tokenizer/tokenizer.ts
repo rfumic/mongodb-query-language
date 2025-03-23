@@ -60,6 +60,14 @@ export class Tokenizer {
 				}
 				break;
 			}
+			case '"': {
+				token = { type: "STRING_LITERAL", literal: this.readString() };
+				break;
+			}
+			case "'": {
+				token = { type: "STRING_LITERAL", literal: this.readString("'") };
+				break;
+			}
 			case "": {
 				token = { type: "EOF", literal: this.currentChar };
 				break;
@@ -88,9 +96,18 @@ export class Tokenizer {
 	}
 	private readIdentifier() {
 		const position = this.currentCharPosition;
-        while (isLetter(this.currentChar) || isDigit(this.currentChar)) {
+		while (isLetter(this.currentChar) || isDigit(this.currentChar)) {
 			this.readChar();
 		}
+		return this.input.substring(position, this.currentCharPosition);
+	}
+
+    private readString(stringDelimiter = '"') {
+		const position = this.currentCharPosition + 1;
+		do {
+			this.readChar();
+        } while (this.currentChar !== stringDelimiter && this.currentChar !== "");
+
 		return this.input.substring(position, this.currentCharPosition);
 	}
 
