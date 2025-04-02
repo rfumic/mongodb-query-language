@@ -14,6 +14,7 @@ import type {
 } from "../ast/ast";
 import type { Token, TokenType } from "../tokenizer/token";
 import type { Tokenizer } from "../tokenizer/tokenizer";
+import { getIntegerFromLiteral } from "../utils/utils";
 
 export class Parser {
     private tokenizer: Tokenizer;
@@ -194,7 +195,7 @@ export class Parser {
                 }
 
                 if (this.isTokenType("INT_LITERAL")) {
-                    bits.push(Number.parseInt(this.currentToken.literal, 10)); // TODO: handle binary and hexadecimal
+                    bits.push(getIntegerFromLiteral(this.currentToken.literal)); 
                     this.eat("INT_LITERAL");
                 } else if (this.isTokenType("COMMA")) {
                     this.eat("COMMA");
@@ -214,7 +215,7 @@ export class Parser {
         }
 
         if (this.currentToken?.type === "INT_LITERAL") {
-            const bit = Number.parseInt(this.currentToken.literal, 10); // TODO: handle binary and hexadecimal
+            const bit = getIntegerFromLiteral(this.currentToken.literal);
             this.eat("INT_LITERAL");
             return bit;
         }
@@ -223,7 +224,7 @@ export class Parser {
     }
     private parseNumber(): number {
         if (this.currentToken?.type === "INT_LITERAL") {
-            const value = Number.parseInt(this.currentToken.literal, 10); // TODO: handle binary and hexadecimal
+            const value = getIntegerFromLiteral(this.currentToken.literal);
             this.eat("INT_LITERAL");
             return value;
         }
@@ -237,7 +238,7 @@ export class Parser {
             if (this.currentToken.type === "INT_LITERAL") {
                 values.push({
                     type: "Literal",
-                    value: Number.parseInt(this.currentToken.literal, 10), // TODO: handle binary and hexadecimal
+                    value: getIntegerFromLiteral(this.currentToken.literal),
                 } as Literal);
                 this.eat("INT_LITERAL");
             } else if (this.currentToken.type === "STRING_LITERAL") {
@@ -292,9 +293,11 @@ export class Parser {
             this.eat("INT_LITERAL");
             return {
                 type: "Literal",
-                value: Number.parseInt(token.literal, 10), // TODO: handle binary and hexadecimal
+                value: getIntegerFromLiteral(token.literal),
             } as Literal;
         }
+
+        // TODO: add floats here
 
         if (token?.type === "STRING_LITERAL") {
             this.eat("STRING_LITERAL");

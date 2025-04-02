@@ -14,13 +14,18 @@ import { Tokenizer } from "../tokenizer/tokenizer";
 import { Parser } from "./parser";
 
 describe("Parser", () => {
-    test("Test basic comparison parsing", () => {
+    test("Test basic comparison parsing with decimal, binary, and hexadecimal numbers", () => {
         const inputs = [
             "field_a = 7",
             "field_b < 8",
             "field_c > 9",
             "field_d >= 129",
             "field_e <= 32192",
+            "field_f = 0b01010",
+            "field_g < 0xff0",
+            "field_h > 0b1011",
+            "field_i >= 0x1A3",
+            "field_j <= 0b1100",
         ];
 
         for (const input of inputs) {

@@ -63,11 +63,11 @@ describe("Tokenizer", () => {
 		const expectedTokens = [
 			{ expectedType: "FIELD", expectedLiteral: "foo" },
 			{ expectedType: "LT", expectedLiteral: "<" },
-			{ expectedType: "INT_LITERAL", expectedLiteral: "0110" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "0b0110" },
 			{ expectedType: "AND", expectedLiteral: "AND" },
 			{ expectedType: "FIELD", expectedLiteral: "bar" },
 			{ expectedType: "GTE", expectedLiteral: ">=" },
-			{ expectedType: "INT_LITERAL", expectedLiteral: "-10011" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "-0b10011" },
 			{ expectedType: "EOF", expectedLiteral: "" },
 		];
 		testTokens(input, expectedTokens);

@@ -21,3 +21,17 @@ export function isWhitespace(char: string) {
 export function isHexDigit(char: string) {
     return /^[0-9a-fA-F]$/.test(char);
 }
+
+export function getIntegerFromLiteral(literal: string) {
+    if (literal.length > 2 && literal[0] === "0") {
+        // Handle binary
+        if (literal[1] === "b") { 
+            return Number.parseInt(literal.substring(2), 2);
+        }
+        // Handle hexadecimal
+        if (literal[1] === "x") {
+            return Number.parseInt(literal.substring(2), 16);
+        }
+    }
+    return Number.parseInt(literal);
+}

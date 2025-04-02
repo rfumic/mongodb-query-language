@@ -112,7 +112,7 @@ export class Tokenizer {
 	}
 
 	private readNumber(): Token {
-        let startPosition = this.currentCharPosition;
+        const startPosition = this.currentCharPosition;
         const isNegative = this.currentChar === "-";
 
         if (isNegative) {
@@ -126,14 +126,13 @@ export class Tokenizer {
         if (this.currentChar === "0" && this.peek() === "b") {
             this.readChar();
             this.readChar();
-            startPosition = this.currentCharPosition;
             while (this.currentChar === "0" || this.currentChar === "1") {
                 this.readChar();
             }
 
             return {
                 type: "INT_LITERAL",
-                literal: `${isNegative ? "-" : ""}${this.input.substring(startPosition, this.currentCharPosition)}`,
+                literal: `${this.input.substring(startPosition, this.currentCharPosition)}`,
             };
         }
 
