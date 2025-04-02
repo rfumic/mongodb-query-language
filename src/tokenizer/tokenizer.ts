@@ -112,54 +112,54 @@ export class Tokenizer {
 	}
 
 	private readNumber(): Token {
-        const startPosition = this.currentCharPosition;
-        const isNegative = this.currentChar === "-";
+		const startPosition = this.currentCharPosition;
+		const isNegative = this.currentChar === "-";
 
-        if (isNegative) {
-            this.readChar();
-        }
+		if (isNegative) {
+			this.readChar();
+		}
 
-        let isFloatingPoint = false;
-        let skipFloatingPointCheck = false;
+		let isFloatingPoint = false;
+		let skipFloatingPointCheck = false;
 
-        // binary numbers
-        if (this.currentChar === "0" && this.peek() === "b") {
-            this.readChar();
-            this.readChar();
-            while (this.currentChar === "0" || this.currentChar === "1") {
-                this.readChar();
-            }
+		// binary numbers
+		if (this.currentChar === "0" && this.peek() === "b") {
+			this.readChar();
+			this.readChar();
+			while (this.currentChar === "0" || this.currentChar === "1") {
+				this.readChar();
+			}
 
-            return {
-                type: "INT_LITERAL",
-                literal: `${this.input.substring(startPosition, this.currentCharPosition)}`,
-            };
-        }
+			return {
+				type: "INT_LITERAL",
+				literal: `${this.input.substring(startPosition, this.currentCharPosition)}`,
+			};
+		}
 
-        if (this.currentChar === "0" && this.peek() === "x") {
-            this.readChar();
-            this.readChar();
-            skipFloatingPointCheck = true;
-        }
+		if (this.currentChar === "0" && this.peek() === "x") {
+			this.readChar();
+			this.readChar();
+			skipFloatingPointCheck = true;
+		}
 
-        while (
-            isDigit(this.currentChar) ||
-            isHexDigit(this.currentChar) ||
-            (!skipFloatingPointCheck && !isFloatingPoint && this.currentChar === ".")
-        ) {
-            if (this.currentChar === ".") {
-                isFloatingPoint = true;
-            }
-            this.readChar();
-        }
+		while (
+			isDigit(this.currentChar) ||
+			isHexDigit(this.currentChar) ||
+			(!skipFloatingPointCheck && !isFloatingPoint && this.currentChar === ".")
+		) {
+			if (this.currentChar === ".") {
+				isFloatingPoint = true;
+			}
+			this.readChar();
+		}
 
-        return {
-            type: isFloatingPoint ? "FLOAT_LITERAL" : "INT_LITERAL",
-            literal: this.input.substring(startPosition, this.currentCharPosition),
-        };
-    }
+		return {
+			type: isFloatingPoint ? "FLOAT_LITERAL" : "INT_LITERAL",
+			literal: this.input.substring(startPosition, this.currentCharPosition),
+		};
+	}
 
-    private eatWhitespace() {
+	private eatWhitespace() {
 		while (isWhitespace(this.currentChar)) {
 			this.readChar();
 		}
