@@ -1,5 +1,5 @@
 import { isDigit, isHexDigit, isLetter, isWhitespace } from "../utils/utils";
-import { getIdentifierType, type Token } from "./token";
+import { type Token, getIdentifierType } from "./token";
 
 export class Tokenizer {
 	input: string;

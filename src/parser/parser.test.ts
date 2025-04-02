@@ -182,6 +182,39 @@ describe("Parser", () => {
 			testBitExpression(query);
 		}
 	});
+
+	test("Test float parsing", () => {
+		const inputs = [
+			{ inputString: "field < 4.31", expectedValue: 4.31 },
+			{ inputString: "field >= 0.0000000123", expectedValue: 0.0000000123 },
+			{ inputString: "field > 123123.999099", expectedValue: 123123.999099 },
+		];
+
+		for (const input of inputs) {
+			const tokenizer = new Tokenizer(input.inputString);
+			const parser = new Parser(tokenizer);
+
+			const query = parser.parse();
+			testComparisonExpression(query);
+			//@ts-ignore
+			expect(query.right.value).toBe(input.expectedValue);
+		}
+	});
+
+	test("Test CONTAINS parsing with floats", () => {
+		const inputs = [
+			"array_field CONTAINS (1.3, 11.0, 0)",
+			"array_field CONTAINS (99999999.1, -0.00921)",
+		];
+
+		for (const input of inputs) {
+			const tokenizer = new Tokenizer(input);
+			const parser = new Parser(tokenizer);
+
+			const query = parser.parse();
+			testContainsExpression(query);
+		}
+	});
 });
 
 function testComparisonExpression(query: ASTNode) {

@@ -240,7 +240,13 @@ export class Parser {
 			this.eat("INT_LITERAL");
 			return value;
 		}
-		// TODO: add float parsing here
+
+		if (this.currentToken?.type === "FLOAT_LITERAL") {
+			const value = Number.parseFloat(this.currentToken.literal);
+			this.eat("FLOAT_LITERAL");
+			return value;
+		}
+
 		throw new Error(`Expected a number, but got: ${this.currentToken?.type}`);
 	}
 
@@ -253,6 +259,12 @@ export class Parser {
 					value: getIntegerFromLiteral(this.currentToken.literal),
 				} as Literal);
 				this.eat("INT_LITERAL");
+			} else if (this.currentToken.type === "FLOAT_LITERAL") {
+				values.push({
+					type: "Literal",
+					value: Number.parseFloat(this.currentToken.literal),
+				} as Literal);
+				this.eat("FLOAT_LITERAL");
 			} else if (this.currentToken.type === "STRING_LITERAL") {
 				values.push({
 					type: "Literal",
@@ -309,7 +321,13 @@ export class Parser {
 			} as Literal;
 		}
 
-		// TODO: add floats here
+		if (token?.type === "FLOAT_LITERAL") {
+			this.eat("FLOAT_LITERAL");
+			return {
+				type: "Literal",
+				value: Number.parseFloat(token.literal),
+			} as Literal;
+		}
 
 		if (token?.type === "STRING_LITERAL") {
 			this.eat("STRING_LITERAL");
