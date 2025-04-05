@@ -155,7 +155,17 @@ export type Identifier = {
 	name: string;
 };
 
+export function isIdentifier(node: ASTNode): node is Identifier {
+	const n = node as Identifier;
+	return n.type === "Identifier" && n.name !== undefined;
+}
+
 export type Literal = {
 	type: "Literal";
 	value: string | number | boolean;
 };
+
+export function isLiteral(node: ASTNode): node is Literal {
+	const n = node as Literal;
+	return n.type === "Literal" && n.value !== undefined;
+}
