@@ -23,7 +23,7 @@ export function isComparisonExpression(
 }
 export type LogicalExpression = {
 	type: "LogicalExpression";
-	operator: string;
+	operator: "AND" | "NOT" | "OR" | "NOR";
 	left: ASTNode;
 	right: ASTNode;
 };

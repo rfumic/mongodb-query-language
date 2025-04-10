@@ -41,8 +41,46 @@ describe("Generator", () => {
 			const p = new Parser(t);
 
 			const mongoQuery = generateQuery(p.parse());
-			// console.log("expected:", input.expected);
-			// console.log("mongoQuery:", mongoQuery);
+			expect(mongoQuery).toStrictEqual(input.expected);
+		}
+	});
+	test("Test creating basic logical queries", () => {
+		const inputs = [
+			// TODO: handle this later
+			// {
+			// 	inputString: "NOT foo = 5",
+			// 	expected: { foo: { $not: { $eq: 5 } } },
+			// },
+			{
+				inputString: "foo > 18 AND bar = 8.1",
+				expected: { $and: [{ foo: { $gt: 18 } }, { bar: { $eq: 8.1 } }] },
+			},
+			{
+				inputString: "foo > 18 OR bar = 8.1",
+				expected: { $or: [{ foo: { $gt: 18 } }, { bar: { $eq: 8.1 } }] },
+			},
+			{
+				inputString: "foo > 18 NOR bar = 8.1",
+				expected: { $nor: [{ foo: { $gt: 18 } }, { bar: { $eq: 8.1 } }] },
+			},
+			{
+				inputString: "field1 > field2 AND bar = 8.1",
+				expected: {
+					$and: [
+						{ $expr: { $gt: ["field1", "field2"] } },
+						{ bar: { $eq: 8.1 } },
+					],
+				},
+			},
+		];
+
+		for (const input of inputs) {
+			const t = new Tokenizer(input.inputString);
+			const p = new Parser(t);
+
+			const mongoQuery = generateQuery(p.parse());
+			console.log("expected:", JSON.stringify(input.expected));
+			console.log("mongoQuery:", JSON.stringify(mongoQuery));
 
 			expect(mongoQuery).toStrictEqual(input.expected);
 		}

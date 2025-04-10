@@ -1,3 +1,4 @@
+import type { Document, Filter } from "mongodb";
 import {
 	type ASTNode,
 	type Identifier,
@@ -5,6 +6,7 @@ import {
 	isComparisonExpression,
 	isIdentifier,
 	isInExpression,
+	isLogicalExpression,
 } from "../ast/ast";
 
 // TODO: move this to a separate file later
@@ -17,17 +19,40 @@ const mongoOperatorTable: Record<string, string> = {
 	"!=": "$ne",
 	IN: "$in",
 	"NOT IN": "$nin",
+	AND: "$and",
+	NOT: "$not",
+	OR: "$or",
+	NOR: "$nor",
 };
 
-export function generateQuery(tree: ASTNode) {
+export function generateQuery(tree: ASTNode): Filter<Document> {
 	console.log("tree:", tree);
+	if (isLogicalExpression(tree)) {
+		const operator = mongoOperatorTable[tree.operator];
+
+		if (!operator) {
+			// TODO: handle error
+			return {};
+		}
+		// TODO: handle NOT
+		if (operator === "$not") {
+			return {};
+		}
+
+		const left = generateQuery(tree.left);
+		const right = generateQuery(tree.right);
+
+		return {
+			[operator]: [left, right],
+		};
+	}
 	if (isInExpression(tree)) {
 		const values = tree.values.map((literal) => literal.value);
 		const operator = mongoOperatorTable[tree.operator];
 
 		if (!operator) {
 			// TODO: handle error
-			return;
+			return {};
 		}
 
 		return {
@@ -47,7 +72,7 @@ export function generateQuery(tree: ASTNode) {
 			const operator = mongoOperatorTable[tree.operator];
 			if (!operator) {
 				// TODO: handle error
-				return;
+				return {};
 			}
 			return {
 				$expr: {
@@ -68,7 +93,7 @@ export function generateQuery(tree: ASTNode) {
 			literal = tree.left as Literal;
 		} else {
 			// TODO: handle error
-			return;
+			return {};
 		}
 
 		// TODO:
@@ -77,7 +102,7 @@ export function generateQuery(tree: ASTNode) {
 		const operator = mongoOperatorTable[tree.operator];
 		if (!operator) {
 			// TODO: handle error
-			return;
+			return {};
 		}
 		return {
 			[field.name]: {
@@ -85,4 +110,5 @@ export function generateQuery(tree: ASTNode) {
 			},
 		};
 	}
+	return {};
 }
