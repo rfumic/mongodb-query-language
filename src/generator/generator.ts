@@ -7,6 +7,8 @@ import {
 	isIdentifier,
 	isInExpression,
 	isLogicalExpression,
+	isModExpression,
+	isSizeExpression,
 } from "../ast/ast";
 
 // TODO: move this to a separate file later
@@ -27,6 +29,22 @@ const mongoOperatorTable: Record<string, string> = {
 
 export function generateQuery(tree: ASTNode): Filter<Document> {
 	console.log("tree:", tree);
+	if (isSizeExpression(tree)) {
+		return {
+			[tree.field.name]: {
+				$size: tree.size,
+			},
+		};
+	}
+
+	if (isModExpression(tree)) {
+		return {
+			[tree.field.name]: {
+				$mod: [tree.divisor, tree.remainder],
+			},
+		};
+	}
+
 	if (isLogicalExpression(tree)) {
 		const operator = mongoOperatorTable[tree.operator];
 

@@ -44,7 +44,8 @@ describe("Generator", () => {
 			expect(mongoQuery).toStrictEqual(input.expected);
 		}
 	});
-	test("Test creating basic logical queries", () => {
+
+	test("Test creating basic logical queries (and MOD)", () => {
 		const inputs = [
 			// TODO: handle this later
 			// {
@@ -71,6 +72,35 @@ describe("Generator", () => {
 						{ bar: { $eq: 8.1 } },
 					],
 				},
+			},
+			{
+				inputString: "foo MOD 2 = 0",
+				expected: { foo: { $mod: [2, 0] } },
+			},
+		];
+
+		for (const input of inputs) {
+			const t = new Tokenizer(input.inputString);
+			const p = new Parser(t);
+
+			const mongoQuery = generateQuery(p.parse());
+			console.log("expected:", JSON.stringify(input.expected));
+			console.log("mongoQuery:", JSON.stringify(mongoQuery));
+
+			expect(mongoQuery).toStrictEqual(input.expected);
+		}
+	});
+
+	test("Test creating basic array queries", () => {
+		const inputs = [
+			// TODO: fix ANY first
+			// {
+			// 	inputString: "foo ANY > 5",
+			// 	expected: { foo: { $elemMatch: { $gt: 5 } } },
+			// },
+			{
+				inputString: "arrayField SIZE 10",
+				expected: { arrayField: { $size: 10 } },
 			},
 		];
 

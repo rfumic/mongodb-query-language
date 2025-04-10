@@ -297,6 +297,7 @@ export class Parser {
 			this.eat("FIELD");
 			const fieldName = token.literal;
 
+            // TODO: this is wrong ????
 			if (this.currentToken?.type === "ANY") {
 				this.eat("ANY");
 				const condition = this.parseComparison();
