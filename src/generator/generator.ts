@@ -3,7 +3,9 @@ import {
 	type ASTNode,
 	type Identifier,
 	type Literal,
+	isBitExpression,
 	isComparisonExpression,
+	isContainsExpression,
 	isIdentifier,
 	isInExpression,
 	isLogicalExpression,
@@ -25,10 +27,36 @@ const mongoOperatorTable: Record<string, string> = {
 	NOT: "$not",
 	OR: "$or",
 	NOR: "$nor",
+	ALL_CLEAR: "$bitsAllClear",
+	ALL_SET: "$bitsAllSet",
+	ANY_CLEAR: "$bitsAnyClear",
+	ANY_SET: "$bitsAnySet",
 };
 
 export function generateQuery(tree: ASTNode): Filter<Document> {
 	console.log("tree:", tree);
+	if (isBitExpression(tree)) {
+		const operator = mongoOperatorTable[tree.operator];
+		if (!operator) {
+			// TODO: handle error
+			return {};
+		}
+
+		return {
+			[tree.field.name]: {
+				[operator]: tree.bits,
+			},
+		};
+	}
+	if (isContainsExpression(tree)) {
+		const values = tree.values.map((literal) => literal.value);
+
+		return {
+			[tree.field.name]: {
+				$all: values,
+			},
+		};
+	}
 	if (isSizeExpression(tree)) {
 		return {
 			[tree.field.name]: {

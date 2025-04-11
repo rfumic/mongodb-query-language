@@ -84,9 +84,6 @@ describe("Generator", () => {
 			const p = new Parser(t);
 
 			const mongoQuery = generateQuery(p.parse());
-			console.log("expected:", JSON.stringify(input.expected));
-			console.log("mongoQuery:", JSON.stringify(mongoQuery));
-
 			expect(mongoQuery).toStrictEqual(input.expected);
 		}
 	});
@@ -99,8 +96,42 @@ describe("Generator", () => {
 			// 	expected: { foo: { $elemMatch: { $gt: 5 } } },
 			// },
 			{
+				inputString: "arrayField CONTAINS (11,2.3,'a string')",
+				expected: { arrayField: { $all: [11, 2.3, "a string"] } },
+			},
+			{
 				inputString: "arrayField SIZE 10",
 				expected: { arrayField: { $size: 10 } },
+			},
+		];
+
+		for (const input of inputs) {
+			const t = new Tokenizer(input.inputString);
+			const p = new Parser(t);
+
+			const mongoQuery = generateQuery(p.parse());
+
+			expect(mongoQuery).toStrictEqual(input.expected);
+		}
+	});
+
+	test("Test creating bit queries", () => {
+		const inputs = [
+			{
+				inputString: "foo BIT ALL_SET 5",
+				expected: { foo: { $bitsAllSet: 5 } },
+			},
+			{
+				inputString: "foo BIT ALL_SET (1,5)",
+				expected: { foo: { $bitsAllSet: [1, 5] } },
+			},
+			{
+				inputString: "foo BIT ANY_SET 5",
+				expected: { foo: { $bitsAnySet: 5 } },
+			},
+			{
+				inputString: "foo BIT ANY_CLEAR 5",
+				expected: { foo: { $bitsAnyClear: 5 } },
 			},
 		];
 
