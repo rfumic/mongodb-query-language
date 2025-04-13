@@ -244,68 +244,72 @@ export class Parser {
 	}
 
 	private parseFactor(): ASTNode {
-		const token = this.currentToken;
+		utils.assert(this.currentToken, "Internal error");
+		const { type, literal } = this.currentToken;
 
-		if (token?.type === "NOT") {
-			this.eat("NOT");
-			return {
-				type: "NotExpression",
-				operator: "NOT",
-				argument: this.parseFactor(),
-			} as NotExpression;
-		}
-		if (token?.type === "FIELD") {
-			this.eat("FIELD");
-			const fieldName = token.literal;
-
-			// TODO: this is wrong ????
-			if (this.currentToken?.type === "ANY") {
-				this.eat("ANY");
-				const condition = this.parseComparison();
+		switch (type) {
+			case "NOT": {
+				this.eat("NOT");
 				return {
-					type: "AnyExpression",
-					field: { type: "Identifier", name: fieldName },
-					condition: condition as ComparisonExpression,
-				} as AnyExpression;
+					type: "NotExpression",
+					operator: "NOT",
+					argument: this.parseFactor(),
+				} as NotExpression;
+			}
+			case "FIELD": {
+				this.eat("FIELD");
+				const fieldName = literal;
+
+				// TODO: this is wrong ????
+				if (this.currentToken?.type === "ANY") {
+					this.eat("ANY");
+					const condition = this.parseComparison();
+					return {
+						type: "AnyExpression",
+						field: { type: "Identifier", name: fieldName },
+						condition: condition as ComparisonExpression,
+					} as AnyExpression;
+				}
+
+				return {
+					type: "Identifier",
+					name: fieldName,
+				} as Identifier;
 			}
 
-			return {
-				type: "Identifier",
-				name: fieldName,
-			} as Identifier;
+			case "INT_LITERAL": {
+				this.eat("INT_LITERAL");
+				return {
+					type: "Literal",
+					value: getIntegerFromLiteral(literal),
+				} as Literal;
+			}
+
+			case "FLOAT_LITERAL": {
+				this.eat("FLOAT_LITERAL");
+				return {
+					type: "Literal",
+					value: Number.parseFloat(literal),
+				} as Literal;
+			}
+
+			case "STRING_LITERAL": {
+				this.eat("STRING_LITERAL");
+				return {
+					type: "Literal",
+					value: literal,
+				} as Literal;
+			}
+
+			case "LPAREN": {
+				this.eat("LPAREN");
+				const node = this.parseExpression();
+				this.eat("RPAREN");
+				return node;
+			}
 		}
 
-		if (token?.type === "INT_LITERAL") {
-			this.eat("INT_LITERAL");
-			return {
-				type: "Literal",
-				value: getIntegerFromLiteral(token.literal),
-			} as Literal;
-		}
-
-		if (token?.type === "FLOAT_LITERAL") {
-			this.eat("FLOAT_LITERAL");
-			return {
-				type: "Literal",
-				value: Number.parseFloat(token.literal),
-			} as Literal;
-		}
-
-		if (token?.type === "STRING_LITERAL") {
-			this.eat("STRING_LITERAL");
-			return {
-				type: "Literal",
-				value: token.literal,
-			} as Literal;
-		}
-
-		if (token?.type === "LPAREN") {
-			this.eat("LPAREN");
-			const node = this.parseExpression();
-			this.eat("RPAREN");
-			return node;
-		}
-		throw new Error(`Unexpected token: ${token?.type}`);
+		utils.throwError(`Unexpected token: ${type}`);
 	}
 
 	private parseMatches(field: ASTNode): MatchesExpression {
