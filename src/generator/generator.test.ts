@@ -143,4 +143,34 @@ describe("Generator", () => {
 			expect(mongoQuery).toStrictEqual(input.expected);
 		}
 	});
+
+	test("Test creating regex queries", () => {
+		const inputs = [
+			{
+				inputString: "name MATCHES 'john'",
+				expected: { name: { $regex: "john", $options: "" } },
+			},
+			{
+				inputString: "name MATCHES 'john' 'i'",
+				expected: { name: { $regex: "john", $options: "i" } },
+			},
+			{
+				inputString: "age > 20 OR name MATCHES '^john' 'i'",
+				expected: {
+					$or: [
+						{ age: { $gt: 20 } },
+						{ name: { $regex: "^john", $options: "i" } },
+					],
+				},
+			},
+		];
+
+		for (const input of inputs) {
+			const t = new Tokenizer(input.inputString);
+			const p = new Parser(t);
+
+			const mongoQuery = generateQuery(p.parse());
+			expect(mongoQuery).toStrictEqual(input.expected);
+		}
+	});
 });

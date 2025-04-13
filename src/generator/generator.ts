@@ -9,6 +9,7 @@ import {
 	isIdentifier,
 	isInExpression,
 	isLogicalExpression,
+	isMatchesExpression,
 	isModExpression,
 	isSizeExpression,
 } from "../ast/ast";
@@ -31,14 +32,21 @@ const mongoOperatorTable: Record<string, string> = {
 	ALL_SET: "$bitsAllSet",
 	ANY_CLEAR: "$bitsAnyClear",
 	ANY_SET: "$bitsAnySet",
-};
+} as const;
 
 // TODO:
 //     - HAS
 //     - IS
-//     - MATCHES
 //     - ANY
 export function generateQuery(tree: ASTNode): Filter<Document> {
+    if(isMatchesExpression(tree)){
+        return {
+            [tree.field.name]: {
+                $regex: tree.pattern,
+                $options: tree.options
+            }
+        }
+    }
 	if (isBitExpression(tree)) {
 		const operator = mongoOperatorTable[tree.operator];
 		if (!operator) {
