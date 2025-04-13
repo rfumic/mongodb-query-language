@@ -35,3 +35,12 @@ export function getIntegerFromLiteral(literal: string) {
 	}
 	return Number.parseInt(literal);
 }
+
+export function throwError(message: string): never {
+	throw new Error(`\nmongo-db-query-language:\n${message}`);
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: any is fine here
+export function assert(condition: any, message: string): asserts condition {
+	if (!condition) throwError(message);
+}

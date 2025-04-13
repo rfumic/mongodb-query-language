@@ -8,6 +8,7 @@ import type {
 	InExpression,
 	Literal,
 	LogicalExpression,
+	MatchesExpression,
 	ModExpression,
 	NotExpression,
 	SizeExpression,
@@ -15,10 +16,11 @@ import type {
 import type { Token, TokenType } from "../tokenizer/token";
 import type { Tokenizer } from "../tokenizer/tokenizer";
 import { getIntegerFromLiteral } from "../utils/utils";
+import * as utils from "../utils/utils";
 
 export class Parser {
 	private tokenizer: Tokenizer;
-	private currentToken: Token | null;
+	private currentToken: Token;
 
 	constructor(tokenizer: Tokenizer) {
 		this.tokenizer = tokenizer;
@@ -26,13 +28,11 @@ export class Parser {
 	}
 
 	private eat(tokenType: TokenType) {
-		if (this.currentToken?.type === tokenType) {
-			this.currentToken = this.tokenizer.nextToken();
-		} else {
-			throw new Error(
-				`Unexpected token: ${this.currentToken?.type}, expected: ${tokenType}`,
-			);
-		}
+		utils.assert(
+			this.currentToken.type === tokenType,
+			`Unexpected token: ${this.currentToken.type}, expected: ${tokenType}`,
+		);
+		this.currentToken = this.tokenizer.nextToken();
 	}
 
 	private parseExpression(): ASTNode {
@@ -83,7 +83,7 @@ export class Parser {
 	}
 
 	private parseNotExpression(): ASTNode {
-		if (this.currentToken?.type === "NOT") {
+		if (this.currentToken.type === "NOT") {
 			this.eat("NOT");
 			return {
 				type: "NotExpression",
@@ -109,79 +109,43 @@ export class Parser {
 				"IN",
 				"NOT_IN",
 				"MOD",
+				"MATCHES",
 				"CONTAINS",
 				"SIZE",
 				"BIT",
 			].includes(this.currentToken.type)
 		) {
-			const token = this.currentToken;
-			this.eat(token.type);
+			const { type, literal } = this.currentToken;
+			this.eat(type);
 
-			if (token.type === "BIT") {
-				const bitOperator = this.currentToken;
-				if (
-					bitOperator.type === "ALL_SET" ||
-					bitOperator.type === "ALL_CLEAR" ||
-					bitOperator.type === "ANY_SET" ||
-					bitOperator.type === "ANY_CLEAR"
-				) {
-					this.eat(bitOperator.type);
-					const bits = this.parseBitValues();
+			switch (type) {
+				case "BIT":
+					node = this.parseBitExpression(node);
+					break;
+				case "CONTAINS":
+					node = this.parseContainsExpression(node);
+					break;
+				case "IN":
+				case "NOT_IN":
+					node = this.parseInExpression(node, type);
+					break;
+				case "MOD":
+					node = this.parseModExpression(node);
+					break;
+				case "SIZE":
+					node = this.parseSizeExpression(node);
+					break;
+				case "MATCHES":
+					node = this.parseMatches(node);
+					break;
+				default:
 					node = {
-						type: "BitExpression",
-						field: node as Identifier,
-						operator: bitOperator.type,
-						bits: bits,
-					} as BitExpression;
-				} else {
-					throw new Error(`Unexpected bit operator: ${bitOperator.type}`);
-				}
-			} else if (token.type === "CONTAINS") {
-				this.eat("LPAREN");
-				const values = this.parseValueList();
-				this.eat("RPAREN");
-
-				node = {
-					type: "ContainsExpression",
-					field: node as Identifier,
-					values: values,
-				} as ContainsExpression;
-			} else if (token.type === "IN" || token.type === "NOT_IN") {
-				this.eat("LPAREN");
-				const values = this.parseValueList();
-				this.eat("RPAREN");
-
-				node = {
-					type: "InExpression",
-					operator: token.type === "IN" ? "IN" : "NOT IN",
-					field: node as Identifier,
-					values: values,
-				} as InExpression;
-			} else if (token.type === "MOD") {
-				const divisor = this.parseNumber();
-				this.eat("EQ");
-				const remainder = this.parseNumber();
-
-				node = {
-					type: "ModExpression",
-					field: node as Identifier,
-					divisor: divisor,
-					remainder: remainder,
-				} as ModExpression;
-			} else if (token.type === "SIZE") {
-				const size = this.parseNumber();
-				node = {
-					type: "SizeExpression",
-					field: node as Identifier,
-					size: size,
-				} as SizeExpression;
-			} else {
-				node = {
-					type: "ComparisonExpression",
-					operator: token.literal,
-					left: node,
-					right: this.parseFactor(),
-				} as ComparisonExpression;
+						type: "ComparisonExpression",
+						operator: literal,
+						left: node,
+						right: this.parseFactor(),
+					} as ComparisonExpression;
+					break;
 			}
 		}
 
@@ -189,22 +153,18 @@ export class Parser {
 	}
 
 	private isTokenType(type: TokenType): boolean {
-		return this.currentToken?.type === type;
+		return this.currentToken.type === type;
 	}
 
 	private parseBitValues(): number | number[] {
-		if (!this.currentToken) {
-			throw new Error("Unexpected end of input");
-		}
+		utils.assert(this.currentToken, "Unexpected end of input");
 
 		if (this.isTokenType("LPAREN")) {
 			this.eat("LPAREN");
 			const bits: number[] = [];
 
 			while (this.currentToken && !this.isTokenType("RPAREN")) {
-				if (!this.currentToken) {
-					throw new Error("Unexpected end of input");
-				}
+				utils.assert(this.currentToken, "Unexpected end of input");
 
 				if (this.isTokenType("INT_LITERAL")) {
 					bits.push(getIntegerFromLiteral(this.currentToken.literal));
@@ -212,139 +172,237 @@ export class Parser {
 				} else if (this.isTokenType("COMMA")) {
 					this.eat("COMMA");
 				} else {
-					throw new Error(
+					utils.throwError(
 						`Unexpected token in bit values: ${this.currentToken.type}`,
 					);
 				}
 			}
 
-			if (!this.isTokenType("RPAREN")) {
-				throw new Error("Expected closing parenthesis");
-			}
+			utils.assert(this.isTokenType("RPAREN"), "Expected closing parenthesis");
 
 			this.eat("RPAREN");
 			return bits;
 		}
 
-		if (this.currentToken?.type === "INT_LITERAL") {
+		if (this.currentToken.type === "INT_LITERAL") {
 			const bit = getIntegerFromLiteral(this.currentToken.literal);
 			this.eat("INT_LITERAL");
 			return bit;
 		}
 
-		throw new Error(`Expected bit values, but got: ${this.currentToken?.type}`);
+		utils.throwError(`Expected bit values, but got: ${this.currentToken.type}`);
 	}
 	private parseNumber(): number {
-		if (this.currentToken?.type === "INT_LITERAL") {
+		if (this.currentToken.type === "INT_LITERAL") {
 			const value = getIntegerFromLiteral(this.currentToken.literal);
 			this.eat("INT_LITERAL");
 			return value;
 		}
 
-		if (this.currentToken?.type === "FLOAT_LITERAL") {
+		if (this.currentToken.type === "FLOAT_LITERAL") {
 			const value = Number.parseFloat(this.currentToken.literal);
 			this.eat("FLOAT_LITERAL");
 			return value;
 		}
 
-		throw new Error(`Expected a number, but got: ${this.currentToken?.type}`);
+		utils.throwError(`Expected a number, but got: ${this.currentToken.type}`);
 	}
 
 	private parseValueList(): Literal[] {
 		const values: Literal[] = [];
+
 		while (this.currentToken && this.currentToken.type !== "RPAREN") {
-			if (this.currentToken.type === "INT_LITERAL") {
-				values.push({
-					type: "Literal",
-					value: getIntegerFromLiteral(this.currentToken.literal),
-				} as Literal);
-				this.eat("INT_LITERAL");
-			} else if (this.currentToken.type === "FLOAT_LITERAL") {
-				values.push({
-					type: "Literal",
-					value: Number.parseFloat(this.currentToken.literal),
-				} as Literal);
-				this.eat("FLOAT_LITERAL");
-			} else if (this.currentToken.type === "STRING_LITERAL") {
-				values.push({
-					type: "Literal",
-					value: this.currentToken.literal,
-				} as Literal);
-				this.eat("STRING_LITERAL");
-			} else if (this.currentToken.type === "COMMA") {
-				this.eat("COMMA");
-			} else {
-				throw new Error(
-					`Unexpected token in value list: ${this.currentToken.type}`,
-				);
+			const { type, literal } = this.currentToken;
+
+			switch (type) {
+				case "INT_LITERAL":
+					values.push({
+						type: "Literal",
+						value: getIntegerFromLiteral(literal),
+					});
+					this.eat("INT_LITERAL");
+					break;
+				case "FLOAT_LITERAL":
+					values.push({ type: "Literal", value: Number.parseFloat(literal) });
+					this.eat("FLOAT_LITERAL");
+					break;
+				case "STRING_LITERAL":
+					values.push({ type: "Literal", value: literal });
+					this.eat("STRING_LITERAL");
+					break;
+				case "COMMA":
+					this.eat("COMMA");
+					break;
+				default:
+					utils.throwError(`Unexpected token in value list: ${type}`);
 			}
 		}
+
 		return values;
 	}
 
 	private parseFactor(): ASTNode {
-		const token = this.currentToken;
+		utils.assert(this.currentToken, "Internal error");
+		const { type, literal } = this.currentToken;
 
-		if (token?.type === "NOT") {
-			this.eat("NOT");
-			return {
-				type: "NotExpression",
-				operator: "NOT",
-				argument: this.parseFactor(),
-			} as NotExpression;
-		}
-		if (token?.type === "FIELD") {
-			this.eat("FIELD");
-			const fieldName = token.literal;
-
-			// TODO: this is wrong ????
-			if (this.currentToken?.type === "ANY") {
-				this.eat("ANY");
-				const condition = this.parseComparison();
+		switch (type) {
+			case "NOT": {
+				this.eat("NOT");
 				return {
-					type: "AnyExpression",
-					field: { type: "Identifier", name: fieldName },
-					condition: condition as ComparisonExpression,
-				} as AnyExpression;
+					type: "NotExpression",
+					operator: "NOT",
+					argument: this.parseFactor(),
+				} as NotExpression;
+			}
+			case "FIELD": {
+				this.eat("FIELD");
+				const fieldName = literal;
+
+				// TODO: this is wrong ????
+				if (this.currentToken.type === "ANY") {
+					this.eat("ANY");
+					const condition = this.parseComparison();
+					return {
+						type: "AnyExpression",
+						field: { type: "Identifier", name: fieldName },
+						condition: condition as ComparisonExpression,
+					} as AnyExpression;
+				}
+
+				return {
+					type: "Identifier",
+					name: fieldName,
+				} as Identifier;
 			}
 
-			return {
-				type: "Identifier",
-				name: fieldName,
-			} as Identifier;
+			case "INT_LITERAL": {
+				this.eat("INT_LITERAL");
+				return {
+					type: "Literal",
+					value: getIntegerFromLiteral(literal),
+				} as Literal;
+			}
+
+			case "FLOAT_LITERAL": {
+				this.eat("FLOAT_LITERAL");
+				return {
+					type: "Literal",
+					value: Number.parseFloat(literal),
+				} as Literal;
+			}
+
+			case "STRING_LITERAL": {
+				this.eat("STRING_LITERAL");
+				return {
+					type: "Literal",
+					value: literal,
+				} as Literal;
+			}
+
+			case "LPAREN": {
+				this.eat("LPAREN");
+				const node = this.parseExpression();
+				this.eat("RPAREN");
+				return node;
+			}
 		}
 
-		if (token?.type === "INT_LITERAL") {
-			this.eat("INT_LITERAL");
-			return {
-				type: "Literal",
-				value: getIntegerFromLiteral(token.literal),
-			} as Literal;
-		}
+		utils.throwError(`Unexpected token: ${type}`);
+	}
 
-		if (token?.type === "FLOAT_LITERAL") {
-			this.eat("FLOAT_LITERAL");
-			return {
-				type: "Literal",
-				value: Number.parseFloat(token.literal),
-			} as Literal;
-		}
+	private parseMatches(field: ASTNode): MatchesExpression {
+		utils.assert(this.currentToken, "Internal error");
 
-		if (token?.type === "STRING_LITERAL") {
+		const patternToken = this.currentToken;
+
+		utils.assert(
+			patternToken.type === "STRING_LITERAL",
+			`Unexpected pattern type: ${patternToken.type}`,
+		);
+
+		this.eat("STRING_LITERAL");
+		let optionsLiteral = "";
+		if (this.currentToken.type === "STRING_LITERAL") {
+			optionsLiteral = this.currentToken.literal;
 			this.eat("STRING_LITERAL");
-			return {
-				type: "Literal",
-				value: token.literal,
-			} as Literal;
 		}
 
-		if (token?.type === "LPAREN") {
-			this.eat("LPAREN");
-			const node = this.parseExpression();
-			this.eat("RPAREN");
-			return node;
-		}
-		throw new Error(`Unexpected token: ${token?.type}`);
+		return {
+			type: "MatchesExpression",
+			field: field as Identifier,
+			pattern: patternToken.literal,
+			options: optionsLiteral,
+		};
+	}
+
+	private parseBitExpression(node: ASTNode): BitExpression {
+		utils.assert(this.currentToken, "Internal error");
+
+		const bitOperator = this.currentToken;
+		utils.assert(
+			bitOperator.type === "ALL_SET" ||
+				bitOperator.type === "ALL_CLEAR" ||
+				bitOperator.type === "ANY_SET" ||
+				bitOperator.type === "ANY_CLEAR",
+			`Unexpected bit operator: ${bitOperator.type}`,
+		);
+
+		this.eat(bitOperator.type);
+
+		const bits = this.parseBitValues();
+		return {
+			type: "BitExpression",
+			field: node as Identifier,
+			operator: bitOperator.type,
+			bits: bits,
+		};
+	}
+
+	private parseContainsExpression(node: ASTNode): ContainsExpression {
+		this.eat("LPAREN");
+		const values = this.parseValueList();
+		this.eat("RPAREN");
+
+		return {
+			type: "ContainsExpression",
+			field: node as Identifier,
+			values: values,
+		};
+	}
+
+	private parseInExpression(node: ASTNode, tokenType: TokenType): InExpression {
+		this.eat("LPAREN");
+		const values = this.parseValueList();
+		this.eat("RPAREN");
+
+		return {
+			type: "InExpression",
+			operator: tokenType === "IN" ? "IN" : "NOT IN",
+			field: node as Identifier,
+			values: values,
+		};
+	}
+
+	private parseModExpression(node: ASTNode): ModExpression {
+		const divisor = this.parseNumber();
+		this.eat("EQ");
+		const remainder = this.parseNumber();
+
+		return {
+			type: "ModExpression",
+			field: node as Identifier,
+			divisor: divisor,
+			remainder: remainder,
+		};
+	}
+
+	private parseSizeExpression(node: ASTNode): SizeExpression {
+		const size = this.parseNumber();
+		return {
+			type: "SizeExpression",
+			field: node as Identifier,
+			size: size,
+		};
 	}
 
 	public parse(): ASTNode {

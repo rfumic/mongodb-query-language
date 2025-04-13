@@ -87,6 +87,22 @@ export function isModExpression(node: ASTNode): node is ModExpression {
 	);
 }
 
+export type MatchesExpression = {
+	type: "MatchesExpression";
+	field: Identifier;
+	pattern: string;
+	options?: string;
+};
+
+export function isMatchesExpression(node: ASTNode): node is MatchesExpression {
+	const n = node as MatchesExpression;
+	return (
+		n.type === "MatchesExpression" &&
+		n.field !== undefined &&
+		n.pattern !== undefined
+	);
+}
+
 export type AnyExpression = {
 	type: "AnyExpression";
 	field: Identifier;
