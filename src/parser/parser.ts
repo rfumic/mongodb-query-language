@@ -117,77 +117,37 @@ export class Parser {
 				"BIT",
 			].includes(this.currentToken.type)
 		) {
-			const token = this.currentToken;
-			this.eat(token.type);
+			const { type, literal } = this.currentToken;
+			this.eat(type);
 
-			if (token.type === "BIT") {
-				// TODO: move this to separate method
-				const bitOperator = this.currentToken;
-				if (
-					bitOperator.type === "ALL_SET" ||
-					bitOperator.type === "ALL_CLEAR" ||
-					bitOperator.type === "ANY_SET" ||
-					bitOperator.type === "ANY_CLEAR"
-				) {
-					this.eat(bitOperator.type);
-					const bits = this.parseBitValues();
+			switch (type) {
+				case "BIT":
+					node = this.parseBitExpression(node);
+					break;
+				case "CONTAINS":
+					node = this.parseContainsExpression(node);
+					break;
+				case "IN":
+				case "NOT_IN":
+					node = this.parseInExpression(node, type);
+					break;
+				case "MOD":
+					node = this.parseModExpression(node);
+					break;
+				case "SIZE":
+					node = this.parseSizeExpression(node);
+					break;
+				case "MATCHES":
+					node = this.parseMatches(node);
+					break;
+				default:
 					node = {
-						type: "BitExpression",
-						field: node as Identifier,
-						operator: bitOperator.type,
-						bits: bits,
-					} as BitExpression;
-				} else {
-					throw new Error(`Unexpected bit operator: ${bitOperator.type}`);
-				}
-			} else if (token.type === "CONTAINS") {
-				this.eat("LPAREN");
-				const values = this.parseValueList();
-				this.eat("RPAREN");
-
-				node = {
-					type: "ContainsExpression",
-					field: node as Identifier,
-					values: values,
-				} as ContainsExpression;
-			} else if (token.type === "IN" || token.type === "NOT_IN") {
-				this.eat("LPAREN");
-				const values = this.parseValueList();
-				this.eat("RPAREN");
-
-				node = {
-					type: "InExpression",
-					operator: token.type === "IN" ? "IN" : "NOT IN",
-					field: node as Identifier,
-					values: values,
-				} as InExpression;
-			} else if (token.type === "MOD") {
-				const divisor = this.parseNumber();
-				this.eat("EQ");
-				const remainder = this.parseNumber();
-
-				node = {
-					type: "ModExpression",
-					field: node as Identifier,
-					divisor: divisor,
-					remainder: remainder,
-				} as ModExpression;
-			} else if (token.type === "SIZE") {
-				const size = this.parseNumber();
-				node = {
-					type: "SizeExpression",
-					field: node as Identifier,
-					size: size,
-				} as SizeExpression;
-			} else if (token.type === "MATCHES") {
-				node = this.parseMatches(node);
-			} else {
-				node = {
-					type: "ComparisonExpression",
-					operator: token.literal,
-					left: node,
-					right: this.parseFactor(),
-				} as ComparisonExpression;
+						type: "ComparisonExpression",
+						operator: literal,
+						left: node,
+						right: this.parseFactor(),
+					} as ComparisonExpression;
+					break;
 			}
 		}
 
@@ -199,18 +159,14 @@ export class Parser {
 	}
 
 	private parseBitValues(): number | number[] {
-		if (!this.currentToken) {
-			throw new Error("Unexpected end of input");
-		}
+		utils.assert(this.currentToken, "Unexpected end of input");
 
 		if (this.isTokenType("LPAREN")) {
 			this.eat("LPAREN");
 			const bits: number[] = [];
 
 			while (this.currentToken && !this.isTokenType("RPAREN")) {
-				if (!this.currentToken) {
-					throw new Error("Unexpected end of input");
-				}
+				utils.assert(this.currentToken, "Unexpected end of input");
 
 				if (this.isTokenType("INT_LITERAL")) {
 					bits.push(getIntegerFromLiteral(this.currentToken.literal));
@@ -224,9 +180,7 @@ export class Parser {
 				}
 			}
 
-			if (!this.isTokenType("RPAREN")) {
-				throw new Error("Expected closing parenthesis");
-			}
+			utils.assert(this.isTokenType("RPAREN"), "Expected closing parenthesis");
 
 			this.eat("RPAREN");
 			return bits;
@@ -258,33 +212,34 @@ export class Parser {
 
 	private parseValueList(): Literal[] {
 		const values: Literal[] = [];
+
 		while (this.currentToken && this.currentToken.type !== "RPAREN") {
-			if (this.currentToken.type === "INT_LITERAL") {
-				values.push({
-					type: "Literal",
-					value: getIntegerFromLiteral(this.currentToken.literal),
-				} as Literal);
-				this.eat("INT_LITERAL");
-			} else if (this.currentToken.type === "FLOAT_LITERAL") {
-				values.push({
-					type: "Literal",
-					value: Number.parseFloat(this.currentToken.literal),
-				} as Literal);
-				this.eat("FLOAT_LITERAL");
-			} else if (this.currentToken.type === "STRING_LITERAL") {
-				values.push({
-					type: "Literal",
-					value: this.currentToken.literal,
-				} as Literal);
-				this.eat("STRING_LITERAL");
-			} else if (this.currentToken.type === "COMMA") {
-				this.eat("COMMA");
-			} else {
-				throw new Error(
-					`Unexpected token in value list: ${this.currentToken.type}`,
-				);
+			const { type, literal } = this.currentToken;
+
+			switch (type) {
+				case "INT_LITERAL":
+					values.push({
+						type: "Literal",
+						value: getIntegerFromLiteral(literal),
+					});
+					this.eat("INT_LITERAL");
+					break;
+				case "FLOAT_LITERAL":
+					values.push({ type: "Literal", value: Number.parseFloat(literal) });
+					this.eat("FLOAT_LITERAL");
+					break;
+				case "STRING_LITERAL":
+					values.push({ type: "Literal", value: literal });
+					this.eat("STRING_LITERAL");
+					break;
+				case "COMMA":
+					this.eat("COMMA");
+					break;
+				default:
+					throw new Error(`Unexpected token in value list: ${type}`);
 			}
 		}
+
 		return values;
 	}
 
@@ -372,6 +327,76 @@ export class Parser {
 			field: field as Identifier,
 			pattern: patternToken.literal,
 			options: optionsLiteral,
+		};
+	}
+
+	private parseBitExpression(node: ASTNode): BitExpression {
+		utils.assert(this.currentToken, "Internal error");
+
+		const bitOperator = this.currentToken;
+		utils.assert(
+			bitOperator.type === "ALL_SET" ||
+				bitOperator.type === "ALL_CLEAR" ||
+				bitOperator.type === "ANY_SET" ||
+				bitOperator.type === "ANY_CLEAR",
+			`Unexpected bit operator: ${bitOperator.type}`,
+		);
+
+		this.eat(bitOperator.type);
+
+		const bits = this.parseBitValues();
+		return {
+			type: "BitExpression",
+			field: node as Identifier,
+			operator: bitOperator.type,
+			bits: bits,
+		};
+	}
+
+	private parseContainsExpression(node: ASTNode): ContainsExpression {
+		this.eat("LPAREN");
+		const values = this.parseValueList();
+		this.eat("RPAREN");
+
+		return {
+			type: "ContainsExpression",
+			field: node as Identifier,
+			values: values,
+		};
+	}
+
+	private parseInExpression(node: ASTNode, tokenType: TokenType): InExpression {
+		this.eat("LPAREN");
+		const values = this.parseValueList();
+		this.eat("RPAREN");
+
+		return {
+			type: "InExpression",
+			operator: tokenType === "IN" ? "IN" : "NOT IN",
+			field: node as Identifier,
+			values: values,
+		};
+	}
+
+	private parseModExpression(node: ASTNode): ModExpression {
+		const divisor = this.parseNumber();
+		this.eat("EQ");
+		const remainder = this.parseNumber();
+
+		return {
+			type: "ModExpression",
+			field: node as Identifier,
+			divisor: divisor,
+			remainder: remainder,
+		};
+	}
+
+	private parseSizeExpression(node: ASTNode): SizeExpression {
+		const size = this.parseNumber();
+		return {
+			type: "SizeExpression",
+			field: node as Identifier,
+			size: size,
 		};
 	}
 

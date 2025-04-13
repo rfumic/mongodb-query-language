@@ -37,6 +37,6 @@ export function getIntegerFromLiteral(literal: string) {
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: any is fine here
-export function assert(condition: any, msg: string): asserts condition {
-	if (!condition) throw new Error(msg);
+export function assert(condition: any, message: string): asserts condition {
+	if (!condition) throw new Error(`mongo-db-query-language: ${message}`);
 }
