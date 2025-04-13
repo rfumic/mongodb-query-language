@@ -8,6 +8,7 @@ import type {
 	InExpression,
 	Literal,
 	LogicalExpression,
+	MatchesExpression,
 	ModExpression,
 	NotExpression,
 	SizeExpression,
@@ -15,6 +16,7 @@ import type {
 import type { Token, TokenType } from "../tokenizer/token";
 import type { Tokenizer } from "../tokenizer/tokenizer";
 import { getIntegerFromLiteral } from "../utils/utils";
+import * as utils from "../utils/utils";
 
 export class Parser {
 	private tokenizer: Tokenizer;
@@ -109,6 +111,7 @@ export class Parser {
 				"IN",
 				"NOT_IN",
 				"MOD",
+				"MATCHES",
 				"CONTAINS",
 				"SIZE",
 				"BIT",
@@ -118,6 +121,7 @@ export class Parser {
 			this.eat(token.type);
 
 			if (token.type === "BIT") {
+				// TODO: move this to separate method
 				const bitOperator = this.currentToken;
 				if (
 					bitOperator.type === "ALL_SET" ||
@@ -175,6 +179,8 @@ export class Parser {
 					field: node as Identifier,
 					size: size,
 				} as SizeExpression;
+			} else if (token.type === "MATCHES") {
+				node = this.parseMatches(node);
 			} else {
 				node = {
 					type: "ComparisonExpression",
@@ -345,6 +351,28 @@ export class Parser {
 			return node;
 		}
 		throw new Error(`Unexpected token: ${token?.type}`);
+	}
+
+	private parseMatches(field: ASTNode): MatchesExpression {
+		utils.assert(this.currentToken, "Internal error");
+
+		const patternToken = this.currentToken;
+		if (patternToken.type !== "STRING_LITERAL") {
+			throw new Error(`Unexpected pattern type: ${patternToken?.type}`);
+		}
+		this.eat("STRING_LITERAL");
+		let optionsLiteral = "";
+		if (this.currentToken.type === "STRING_LITERAL") {
+			optionsLiteral = this.currentToken.literal;
+			this.eat("STRING_LITERAL");
+		}
+
+		return {
+			type: "MatchesExpression",
+			field: field as Identifier,
+			pattern: patternToken.literal,
+			options: optionsLiteral,
+		};
 	}
 
 	public parse(): ASTNode {

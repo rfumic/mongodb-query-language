@@ -35,3 +35,8 @@ export function getIntegerFromLiteral(literal: string) {
 	}
 	return Number.parseInt(literal);
 }
+
+// biome-ignore lint/suspicious/noExplicitAny: any is fine here
+export function assert(condition: any, msg: string): asserts condition {
+	if (!condition) throw new Error(msg);
+}

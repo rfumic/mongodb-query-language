@@ -6,6 +6,7 @@ import {
 	isContainsExpression,
 	isInExpression,
 	isLogicalExpression,
+	isMatchesExpression,
 	isModExpression,
 	isNotExpression,
 	isSizeExpression,
@@ -106,6 +107,22 @@ describe("Parser", () => {
 			const query = parser.parse();
 
 			testModExpression(query);
+		}
+	});
+
+	test("Test MATCHES parsing", () => {
+		const inputs = [
+			"field MATCHES 'patt.ern'",
+			"field MATCHES 'pattern*with.option' 'si'",
+		];
+
+		for (const input of inputs) {
+			const tokenizer = new Tokenizer(input);
+			const parser = new Parser(tokenizer);
+
+			const query = parser.parse();
+
+			testMatchesExpression(query);
 		}
 	});
 
@@ -233,6 +250,9 @@ function testInExpression(query: ASTNode) {
 }
 function testModExpression(query: ASTNode) {
 	expect(isModExpression(query)).toBe(true);
+}
+function testMatchesExpression(query: ASTNode) {
+	expect(isMatchesExpression(query)).toBe(true);
 }
 function testAnyExpression(query: ASTNode) {
 	expect(isAnyExpression(query)).toBe(true);

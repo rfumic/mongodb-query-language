@@ -208,7 +208,8 @@ describe("Tokenizer", () => {
 		testTokens(input, expectedTokens);
 	});
 	test("should tokenize MOD and MATCHES correctly", () => {
-		const input = "foo MOD 2 = 0 AND bar MATCHES string_not_supported_yet";
+		const input =
+			"foo MOD 2 = 0 AND bar MATCHES 'patt.*ern' OR baz MATCHES 'patt.*ern2' 'i'";
 		const expectedTokens = [
 			{ expectedType: "FIELD", expectedLiteral: "foo" },
 			{ expectedType: "MOD", expectedLiteral: "MOD" },
@@ -218,7 +219,12 @@ describe("Tokenizer", () => {
 			{ expectedType: "AND", expectedLiteral: "AND" },
 			{ expectedType: "FIELD", expectedLiteral: "bar" },
 			{ expectedType: "MATCHES", expectedLiteral: "MATCHES" },
-			{ expectedType: "FIELD", expectedLiteral: "string_not_supported_yet" },
+			{ expectedType: "STRING_LITERAL", expectedLiteral: "patt.*ern" },
+			{ expectedType: "OR", expectedLiteral: "OR" },
+			{ expectedType: "FIELD", expectedLiteral: "baz" },
+			{ expectedType: "MATCHES", expectedLiteral: "MATCHES" },
+			{ expectedType: "STRING_LITERAL", expectedLiteral: "patt.*ern2" },
+			{ expectedType: "STRING_LITERAL", expectedLiteral: "i" },
 			{ expectedType: "EOF", expectedLiteral: "" },
 		];
 
