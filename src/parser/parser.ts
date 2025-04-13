@@ -20,7 +20,7 @@ import * as utils from "../utils/utils";
 
 export class Parser {
 	private tokenizer: Tokenizer;
-	private currentToken: Token | null;
+	private currentToken: Token;
 
 	constructor(tokenizer: Tokenizer) {
 		this.tokenizer = tokenizer;
@@ -28,13 +28,11 @@ export class Parser {
 	}
 
 	private eat(tokenType: TokenType) {
-		if (this.currentToken?.type === tokenType) {
-			this.currentToken = this.tokenizer.nextToken();
-		} else {
-			throw new Error(
-				`Unexpected token: ${this.currentToken?.type}, expected: ${tokenType}`,
-			);
-		}
+		utils.assert(
+			this.currentToken.type === tokenType,
+			`Unexpected token: ${this.currentToken.type}, expected: ${tokenType}`,
+		);
+		this.currentToken = this.tokenizer.nextToken();
 	}
 
 	private parseExpression(): ASTNode {
@@ -85,7 +83,7 @@ export class Parser {
 	}
 
 	private parseNotExpression(): ASTNode {
-		if (this.currentToken?.type === "NOT") {
+		if (this.currentToken.type === "NOT") {
 			this.eat("NOT");
 			return {
 				type: "NotExpression",
@@ -155,7 +153,7 @@ export class Parser {
 	}
 
 	private isTokenType(type: TokenType): boolean {
-		return this.currentToken?.type === type;
+		return this.currentToken.type === type;
 	}
 
 	private parseBitValues(): number | number[] {
@@ -174,7 +172,7 @@ export class Parser {
 				} else if (this.isTokenType("COMMA")) {
 					this.eat("COMMA");
 				} else {
-					throw new Error(
+					utils.throwError(
 						`Unexpected token in bit values: ${this.currentToken.type}`,
 					);
 				}
@@ -186,28 +184,28 @@ export class Parser {
 			return bits;
 		}
 
-		if (this.currentToken?.type === "INT_LITERAL") {
+		if (this.currentToken.type === "INT_LITERAL") {
 			const bit = getIntegerFromLiteral(this.currentToken.literal);
 			this.eat("INT_LITERAL");
 			return bit;
 		}
 
-		throw new Error(`Expected bit values, but got: ${this.currentToken?.type}`);
+		utils.throwError(`Expected bit values, but got: ${this.currentToken.type}`);
 	}
 	private parseNumber(): number {
-		if (this.currentToken?.type === "INT_LITERAL") {
+		if (this.currentToken.type === "INT_LITERAL") {
 			const value = getIntegerFromLiteral(this.currentToken.literal);
 			this.eat("INT_LITERAL");
 			return value;
 		}
 
-		if (this.currentToken?.type === "FLOAT_LITERAL") {
+		if (this.currentToken.type === "FLOAT_LITERAL") {
 			const value = Number.parseFloat(this.currentToken.literal);
 			this.eat("FLOAT_LITERAL");
 			return value;
 		}
 
-		throw new Error(`Expected a number, but got: ${this.currentToken?.type}`);
+		utils.throwError(`Expected a number, but got: ${this.currentToken.type}`);
 	}
 
 	private parseValueList(): Literal[] {
@@ -236,7 +234,7 @@ export class Parser {
 					this.eat("COMMA");
 					break;
 				default:
-					throw new Error(`Unexpected token in value list: ${type}`);
+					utils.throwError(`Unexpected token in value list: ${type}`);
 			}
 		}
 
@@ -261,7 +259,7 @@ export class Parser {
 				const fieldName = literal;
 
 				// TODO: this is wrong ????
-				if (this.currentToken?.type === "ANY") {
+				if (this.currentToken.type === "ANY") {
 					this.eat("ANY");
 					const condition = this.parseComparison();
 					return {
@@ -316,9 +314,12 @@ export class Parser {
 		utils.assert(this.currentToken, "Internal error");
 
 		const patternToken = this.currentToken;
-		if (patternToken.type !== "STRING_LITERAL") {
-			throw new Error(`Unexpected pattern type: ${patternToken?.type}`);
-		}
+
+		utils.assert(
+			patternToken.type === "STRING_LITERAL",
+			`Unexpected pattern type: ${patternToken.type}`,
+		);
+
 		this.eat("STRING_LITERAL");
 		let optionsLiteral = "";
 		if (this.currentToken.type === "STRING_LITERAL") {
