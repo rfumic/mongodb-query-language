@@ -1,10 +1,14 @@
 {
-  "name": "mongodb-query-language",
+  "name": "@rfumic/mongodb-query-language",
   "description": "",
   "version": "0.0.1",
   "keywords": [],
   "author": "rfumic",
   "license": "MIT",
+  "homepage": "https://github.com/rfumic/mongodb-query-language",
+  "repository":{
+      "url": "https://github.com/rfumic/mongodb-query-language"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
