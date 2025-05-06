@@ -103,6 +103,21 @@ describe("Tokenizer", () => {
 		testTokens(input, expectedTokens);
 	});
 
+	test("should tokenize booleans", () => {
+		const input = "foo = TRUE AND bar != FALSE";
+		const expectedTokens = [
+			{ expectedType: "FIELD", expectedLiteral: "foo" },
+			{ expectedType: "EQ", expectedLiteral: "=" },
+			{ expectedType: "BOOL_LITERAL", expectedLiteral: "TRUE" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "bar" },
+			{ expectedType: "NEQ", expectedLiteral: "!=" },
+			{ expectedType: "BOOL_LITERAL", expectedLiteral: "FALSE" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input, expectedTokens);
+	});
+
 	test("should tokenize a simple expression with comparison and logical operator", () => {
 		const input = "(foo > 12345) AND (bar = 67)";
 		const expectedTokens = [

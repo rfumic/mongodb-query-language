@@ -1,5 +1,6 @@
 import {
 	type ASTNode,
+	type ComparisonExpression,
 	isAnyExpression,
 	isBitExpression,
 	isComparisonExpression,
@@ -49,6 +50,19 @@ describe("Parser", () => {
 			const query = parser.parse();
 
 			testComparisonExpression(query);
+		}
+	});
+
+	test("Test boolean comparison parsing", () => {
+		const inputs = ["foo = TRUE", "foo = FALSE", "bar != TRUE"];
+
+		for (const input of inputs) {
+			const tokenizer = new Tokenizer(input);
+			const parser = new Parser(tokenizer);
+
+			const query = parser.parse() as ComparisonExpression;
+			testComparisonExpression(query);
+			expect(query.right.type).toBe("Literal");
 		}
 	});
 

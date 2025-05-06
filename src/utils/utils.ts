@@ -35,6 +35,16 @@ export function getIntegerFromLiteral(literal: string) {
 	}
 	return Number.parseInt(literal);
 }
+export function getBooleanFromLiteral(literal: string) {
+	const uppercaseLiteral = literal.toUpperCase();
+	if (uppercaseLiteral === "TRUE") {
+		return true;
+	}
+	if (uppercaseLiteral === "FALSE") {
+		return false;
+	}
+	throwError(`Parsing error: ${literal} was parsed as BOOL_LITERAL`);
+}
 
 export function throwError(message: string): never {
 	throw new Error(`\nmongo-db-query-language:\n${message}`);

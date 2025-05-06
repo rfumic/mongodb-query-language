@@ -299,6 +299,14 @@ export class Parser {
 				} as Literal;
 			}
 
+			case "BOOL_LITERAL": {
+				this.eat("BOOL_LITERAL");
+				return {
+					type: "Literal",
+					value: utils.getBooleanFromLiteral(literal),
+				} as Literal;
+			}
+
 			case "LPAREN": {
 				this.eat("LPAREN");
 				const node = this.parseExpression();

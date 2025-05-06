@@ -77,6 +77,10 @@ describe("Generator", () => {
 				inputString: "foo MOD 2 = 0",
 				expected: { foo: { $mod: [2, 0] } },
 			},
+			{
+				inputString: "foo = TRUE AND bar != FALSE",
+				expected: { $and: [{ foo: { $eq: true } }, { bar: { $ne: false } }] },
+			},
 		];
 
 		for (const input of inputs) {
