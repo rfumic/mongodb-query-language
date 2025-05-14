@@ -29,11 +29,10 @@ describe("Generator", () => {
 				inputString: "field IN (11, 123.1, 'string')",
 				expected: { field: { $in: [11, 123.1, "string"] } },
 			},
-			// TODO: add when NOT IN starts working
-			// {
-			// 	inputString: "field NOT IN (11, 123.1, 'string')",
-			// 	expected: { field: { $nin: [11, 123.1, "string"] } },
-			// },
+			{
+				inputString: "field NOT IN (11, 123.1, 'string')",
+				expected: { field: { $nin: [11, 123.1, "string"] } },
+			},
 		];
 
 		for (const input of inputs) {

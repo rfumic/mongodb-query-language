@@ -21,8 +21,22 @@ export class Tokenizer {
 		this.currentCharPosition = this.readPosition++;
 	}
 
+	private nextTokenCache: Token | null = null;
+	peekToken() {
+		if (!this.nextTokenCache) {
+			this.nextTokenCache = this.nextToken();
+		}
+		return this.nextTokenCache;
+	}
+
 	nextToken() {
 		let token: Token | null = null;
+		if (this.nextTokenCache) {
+			token = this.nextTokenCache;
+			this.nextTokenCache = null;
+			return token;
+		}
+
 		this.eatWhitespace();
 
 		switch (this.currentChar) {
