@@ -67,10 +67,7 @@ describe("Parser", () => {
 	});
 
 	test("Test IN and NOT IN", () => {
-		const inputs = [
-			"field_a IN (11, 21)",
-			// "field_b NOT IN (449, 982)" // TODO: fix NOT
-		];
+		const inputs = ["field_a IN (11, 21)", "field_b NOT IN (449, 982)"];
 
 		for (const input of inputs) {
 			const tokenizer = new Tokenizer(input);

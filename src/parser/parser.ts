@@ -107,7 +107,7 @@ export class Parser {
 				"LTE",
 				"NEQ",
 				"IN",
-				"NOT_IN",
+				"NOT",
 				"MOD",
 				"MATCHES",
 				"CONTAINS",
@@ -125,8 +125,13 @@ export class Parser {
 				case "CONTAINS":
 					node = this.parseContainsExpression(node);
 					break;
+				case "NOT": {
+					if (this.currentToken.type !== "IN") break;
+
+					this.eat("IN");
+					// biome-ignore lint/suspicious/noFallthroughSwitchClause: NOTE: intentional fallthrough to handle NOT IN case
+				}
 				case "IN":
-				case "NOT_IN":
 					node = this.parseInExpression(node, type);
 					break;
 				case "MOD":
