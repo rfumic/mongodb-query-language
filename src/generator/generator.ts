@@ -1,20 +1,23 @@
 import type { Document, Filter } from "mongodb";
 import {
 	type ASTNode,
-	type Identifier,
-	type Literal,
+	type ComparisonExpression,
+	type InExpression,
+	type MatchesExpression,
 	isBitExpression,
 	isComparisonExpression,
 	isContainsExpression,
 	isIdentifier,
 	isInExpression,
+	isLiteral,
 	isLogicalExpression,
 	isMatchesExpression,
 	isModExpression,
+	isNotExpression,
 	isSizeExpression,
 } from "../ast/ast";
+import * as Utils from "../utils/utils";
 
-// TODO: move this to a separate file later
 const mongoOperatorTable: Record<string, string> = {
 	"<": "$lt",
 	"<=": "$lte",
@@ -34,25 +37,35 @@ const mongoOperatorTable: Record<string, string> = {
 	ANY_SET: "$bitsAnySet",
 } as const;
 
+function getOperator(operator: string) {
+	const result = mongoOperatorTable[operator];
+	Utils.assert(result, `Unknown operator: ${operator}`);
+	return result;
+}
+
 // TODO:
 //     - HAS
 //     - IS
 //     - ANY
 export function generateQuery(tree: ASTNode): Filter<Document> {
-	if (isMatchesExpression(tree)) {
-		return {
-			[tree.field.name]: {
-				$regex: tree.pattern,
-				$options: tree.options,
-			},
-		};
-	}
-	if (isBitExpression(tree)) {
-		const operator = mongoOperatorTable[tree.operator];
-		if (!operator) {
-			// TODO: handle error
-			return {};
+	if (isNotExpression(tree)) {
+		// TODO: $exists
+		switch (tree.argument.type) {
+			case "ComparisonExpression":
+				return generateComparisonQuery(tree.argument, true);
+			case "MatchesExpression":
+				return generateMatchesQuery(tree.argument, true);
+			case "InExpression":
+				return generateInQuery(tree.argument, true);
 		}
+	}
+
+	if (isMatchesExpression(tree)) {
+		return generateMatchesQuery(tree);
+	}
+
+	if (isBitExpression(tree)) {
+		const operator = getOperator(tree.operator);
 
 		return {
 			[tree.field.name]: {
@@ -60,6 +73,7 @@ export function generateQuery(tree: ASTNode): Filter<Document> {
 			},
 		};
 	}
+
 	if (isContainsExpression(tree)) {
 		const values = tree.values.map((literal) => literal.value);
 
@@ -69,6 +83,7 @@ export function generateQuery(tree: ASTNode): Filter<Document> {
 			},
 		};
 	}
+
 	if (isSizeExpression(tree)) {
 		return {
 			[tree.field.name]: {
@@ -86,16 +101,7 @@ export function generateQuery(tree: ASTNode): Filter<Document> {
 	}
 
 	if (isLogicalExpression(tree)) {
-		const operator = mongoOperatorTable[tree.operator];
-
-		if (!operator) {
-			// TODO: handle error
-			return {};
-		}
-		// TODO: handle NOT
-		if (operator === "$not") {
-			return {};
-		}
+		const operator = getOperator(tree.operator);
 
 		const left = generateQuery(tree.left);
 		const right = generateQuery(tree.right);
@@ -104,65 +110,62 @@ export function generateQuery(tree: ASTNode): Filter<Document> {
 			[operator]: [left, right],
 		};
 	}
-	if (isInExpression(tree)) {
-		const values = tree.values.map((literal) => literal.value);
-		const operator = mongoOperatorTable[tree.operator];
 
-		if (!operator) {
-			// TODO: handle error
-			return {};
-		}
-
-		return {
-			[tree.field.name]: {
-				[operator]: values,
-			},
-		};
-	}
 	if (isComparisonExpression(tree)) {
-		const leftIsIdentifier = isIdentifier(tree.left);
-		const rightIsIdentifier = isIdentifier(tree.right);
-
-		if (leftIsIdentifier && rightIsIdentifier) {
-			const leftSide = tree.left as Identifier;
-			const rightSide = tree.right as Identifier;
-			const operator = mongoOperatorTable[tree.operator];
-			if (!operator) {
-				// TODO: handle error
-				return {};
-			}
-			return {
-				$expr: {
-					[operator]: [leftSide.name, rightSide.name],
-				},
-			};
-		}
-
-		let field: Identifier;
-		let literal: Literal;
-		if (leftIsIdentifier) {
-			field = tree.left as Identifier;
-			// TODO: check if is literal
-			literal = tree.right as Literal;
-		} else if (rightIsIdentifier) {
-			field = tree.right as Identifier;
-			// TODO: check if is literal
-			literal = tree.left as Literal;
-		} else {
-			// TODO: handle error
-			return {};
-		}
-
-		const operator = mongoOperatorTable[tree.operator];
-		if (!operator) {
-			// TODO: handle error
-			return {};
-		}
-		return {
-			[field.name]: {
-				[operator]: literal.value,
-			},
-		};
+		return generateComparisonQuery(tree);
 	}
+
+	if (isInExpression(tree)) {
+		return generateInQuery(tree);
+	}
+
 	return {};
+}
+
+function generateInQuery(
+	tree: InExpression,
+	isNotQuery = false,
+): Filter<Document> {
+	const values = tree.values.map((literal) => literal.value);
+	const operator = getOperator(tree.operator);
+	const expression = { [operator]: values };
+
+	return {
+		[tree.field.name]: isNotQuery ? { $not: expression } : expression,
+	};
+}
+function generateMatchesQuery(
+	tree: MatchesExpression,
+	isNotQuery = false,
+): Filter<Document> {
+	const expression = { $regex: tree.pattern, $options: tree.options };
+	return {
+		[tree.field.name]: isNotQuery ? { $not: expression } : expression,
+	};
+}
+
+function generateComparisonQuery(
+	tree: ComparisonExpression,
+	isNotQuery = false,
+): Filter<Document> {
+	const { left, right, operator } = tree;
+	const op = getOperator(operator);
+
+	// Both sides are identifiers
+	if (isIdentifier(left) && isIdentifier(right)) {
+		const expression = { [op]: [`${left.name}`, `${right.name}`] };
+		return { $expr: isNotQuery ? { $not: [expression] } : expression };
+	}
+
+	// One identifier and one literal
+	const [field, value] = isIdentifier(left)
+		? [left, right]
+		: isIdentifier(right)
+			? [right, left]
+			: Utils.throwError("Comparison must have at least one identifier");
+
+	Utils.assert(isLiteral(value), "Right-hand side must be a literal");
+
+	const expression = { [op]: value.value };
+	return { [field.name]: isNotQuery ? { $not: expression } : expression };
 }

@@ -23,7 +23,7 @@ export function isComparisonExpression(
 }
 export type LogicalExpression = {
 	type: "LogicalExpression";
-	operator: "AND" | "NOT" | "OR" | "NOR";
+	operator: "AND" | "OR" | "NOR";
 	left: ASTNode;
 	right: ASTNode;
 };
@@ -41,7 +41,8 @@ export function isLogicalExpression(node: ASTNode): node is LogicalExpression {
 export type NotExpression = {
 	type: "NotExpression";
 	operator: "NOT";
-	argument: ASTNode;
+	// TODO: $exists vvv
+	argument: ComparisonExpression | MatchesExpression | InExpression;
 };
 
 export function isNotExpression(node: ASTNode): node is NotExpression {

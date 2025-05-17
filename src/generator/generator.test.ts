@@ -46,11 +46,6 @@ describe("Generator", () => {
 
 	test("Test creating basic logical queries (and MOD)", () => {
 		const inputs = [
-			// TODO: handle this later
-			// {
-			// 	inputString: "NOT foo = 5",
-			// 	expected: { foo: { $not: { $eq: 5 } } },
-			// },
 			{
 				inputString: "foo > 18 AND bar = 8.1",
 				expected: { $and: [{ foo: { $gt: 18 } }, { bar: { $eq: 8.1 } }] },
@@ -173,6 +168,71 @@ describe("Generator", () => {
 			const p = new Parser(t);
 
 			const mongoQuery = generateQuery(p.parse());
+			expect(mongoQuery).toStrictEqual(input.expected);
+		}
+	});
+
+	test("Test creating NOT queries", () => {
+		const inputs = [
+			{
+				inputString: "NOT foo = 5",
+				expected: { foo: { $not: { $eq: 5 } } },
+			},
+			{
+				inputString: "NOT foo > 51",
+				expected: { foo: { $not: { $gt: 51 } } },
+			},
+			{
+				inputString: "NOT foo >= 11",
+				expected: { foo: { $not: { $gte: 11 } } },
+			},
+			{
+				inputString: "NOT foo < 51",
+				expected: { foo: { $not: { $lt: 51 } } },
+			},
+			{
+				inputString: "NOT foo <= 11",
+				expected: { foo: { $not: { $lte: 11 } } },
+			},
+			{
+				inputString: "NOT foo != 987",
+				expected: { foo: { $not: { $ne: 987 } } },
+			},
+			{
+				inputString: "NOT foo != 987",
+				expected: { foo: { $not: { $ne: 987 } } },
+			},
+			{
+				inputString: "NOT field1 > field2",
+				expected: { $expr: { $not: [{ $gt: ["field1", "field2"] }] } },
+			},
+			{
+				inputString: "NOT field1 >= field2",
+				expected: { $expr: { $not: [{ $gte: ["field1", "field2"] }] } },
+			},
+			{
+				inputString: "NOT field IN (11, 123.1, 'string')",
+				expected: { field: { $not: { $in: [11, 123.1, "string"] } } },
+			},
+			{
+				inputString: "NOT field NOT IN (11, 123.1, 'string')",
+				expected: { field: { $not: { $nin: [11, 123.1, "string"] } } },
+			},
+			{
+				inputString: "NOT name MATCHES 'john'",
+				expected: { name: { $not: { $regex: "john", $options: "" } } },
+			},
+			{
+				inputString: "NOT name MATCHES 'john' 'i'",
+				expected: { name: { $not: { $regex: "john", $options: "i" } } },
+			},
+		];
+
+		for (const input of inputs) {
+			const t = new Tokenizer(input.inputString);
+			const p = new Parser(t);
+			const a = p.parse();
+			const mongoQuery = generateQuery(a);
 			expect(mongoQuery).toStrictEqual(input.expected);
 		}
 	});
