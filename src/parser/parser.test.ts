@@ -5,6 +5,7 @@ import {
 	isBitExpression,
 	isComparisonExpression,
 	isContainsExpression,
+	isHasExpression,
 	isInExpression,
 	isLogicalExpression,
 	isMatchesExpression,
@@ -242,6 +243,14 @@ describe("Parser", () => {
 			const query = parser.parse();
 			testContainsExpression(query);
 		}
+	});
+
+	test("Test HAS", () => {
+		const input = "HAS foo";
+		const tokenizer = new Tokenizer(input);
+		const parser = new Parser(tokenizer);
+		const query = parser.parse();
+		expect(isHasExpression(query)).toBe(true);
 	});
 });
 

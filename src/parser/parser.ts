@@ -1,17 +1,19 @@
-import type {
-	ASTNode,
-	AnyExpression,
-	BitExpression,
-	ComparisonExpression,
-	ContainsExpression,
-	Identifier,
-	InExpression,
-	Literal,
-	LogicalExpression,
-	MatchesExpression,
-	ModExpression,
-	NotExpression,
-	SizeExpression,
+import {
+	type ASTNode,
+	type AnyExpression,
+	type BitExpression,
+	type ComparisonExpression,
+	type ContainsExpression,
+	type HasExpression,
+	type Identifier,
+	type InExpression,
+	type Literal,
+	type LogicalExpression,
+	type MatchesExpression,
+	type ModExpression,
+	type NotExpression,
+	type SizeExpression,
+	isIdentifier,
 } from "../ast/ast";
 import type { Token, TokenType } from "../tokenizer/token";
 import type { Tokenizer } from "../tokenizer/tokenizer";
@@ -88,8 +90,24 @@ export class Parser {
 			return {
 				type: "NotExpression",
 				operator: "NOT",
-				argument: this.parseComparison(),
+				argument: this.parseHasExpression(),
 			} as NotExpression;
+		}
+		return this.parseHasExpression();
+	}
+
+	private parseHasExpression(): ASTNode {
+		if (this.currentToken.type === "HAS") {
+			this.eat("HAS");
+			const field = this.parseFactor();
+			utils.assert(
+				isIdentifier(field),
+				`Unexpected token of type ${field.type}`,
+			);
+			return {
+				type: "HasExpression",
+				field: field,
+			} as HasExpression;
 		}
 		return this.parseComparison();
 	}

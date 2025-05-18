@@ -41,8 +41,11 @@ export function isLogicalExpression(node: ASTNode): node is LogicalExpression {
 export type NotExpression = {
 	type: "NotExpression";
 	operator: "NOT";
-	// TODO: $exists vvv
-	argument: ComparisonExpression | MatchesExpression | InExpression;
+	argument:
+		| ComparisonExpression
+		| MatchesExpression
+		| InExpression
+		| HasExpression;
 };
 
 export function isNotExpression(node: ASTNode): node is NotExpression {
@@ -147,6 +150,16 @@ export function isSizeExpression(node: ASTNode): node is SizeExpression {
 	return (
 		n.type === "SizeExpression" && n.field !== undefined && n.size !== undefined
 	);
+}
+
+export type HasExpression = {
+	type: "HasExpression";
+	field: Identifier;
+};
+
+export function isHasExpression(node: ASTNode): node is HasExpression {
+	const n = node as HasExpression;
+	return n.type === "HasExpression" && n.field !== undefined;
 }
 
 export type BitExpression = {

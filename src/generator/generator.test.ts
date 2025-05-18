@@ -243,4 +243,48 @@ describe("Generator", () => {
 			expect(mongoQuery).toStrictEqual(input.expected);
 		}
 	});
+	test("Test creating HAS queries", () => {
+		const inputs = [
+			{
+				inputString: "HAS address",
+				expected: { address: { $exists: true } },
+			},
+			{
+				inputString: "HAS timestamp",
+				expected: { timestamp: { $exists: true } },
+			},
+
+			{
+				inputString: "NOT HAS deletedAt",
+				expected: { deletedAt: { $exists: false } },
+			},
+			{
+				inputString: "NOT HAS temporaryData",
+				expected: { temporaryData: { $exists: false } },
+			},
+
+			{
+				inputString: "HAS price AND price > 100",
+				expected: {
+					$and: [{ price: { $exists: true } }, { price: { $gt: 100 } }],
+				},
+			},
+			{
+				inputString: "HAS email AND NOT HAS verificationToken",
+				expected: {
+					$and: [
+						{ email: { $exists: true } },
+						{ verificationToken: { $exists: false } },
+					],
+				},
+			},
+		];
+
+		for (const input of inputs) {
+			const t = new Tokenizer(input.inputString);
+			const p = new Parser(t);
+			const mongoQuery = generateQuery(p.parse());
+			expect(mongoQuery).toStrictEqual(input.expected);
+		}
+	});
 });

@@ -2,12 +2,14 @@ import type { Document, Filter } from "mongodb";
 import {
 	type ASTNode,
 	type ComparisonExpression,
+	HasExpression,
 	type InExpression,
 	type MatchesExpression,
 	isAnyExpression,
 	isBitExpression,
 	isComparisonExpression,
 	isContainsExpression,
+	isHasExpression,
 	isIdentifier,
 	isInExpression,
 	isLiteral,
@@ -37,6 +39,7 @@ const mongoOperatorTable: Record<string, string> = {
 	ANY_CLEAR: "$bitsAnyClear",
 	ANY_SET: "$bitsAnySet",
 	ANY: "$elemMatch",
+	HAS: "$exists",
 } as const;
 
 function getOperator(operator: string) {
@@ -46,12 +49,11 @@ function getOperator(operator: string) {
 }
 
 // TODO:
-//     - [ ] HAS
+//     - [x] HAS
 //     - [ ] IS
 //     - [x] ANY
 export function generateQuery(tree: ASTNode): Filter<Document> {
 	if (isNotExpression(tree)) {
-		// TODO: $exists
 		switch (tree.argument.type) {
 			case "ComparisonExpression":
 				return generateComparisonQuery(tree.argument, true);
@@ -59,7 +61,21 @@ export function generateQuery(tree: ASTNode): Filter<Document> {
 				return generateMatchesQuery(tree.argument, true);
 			case "InExpression":
 				return generateInQuery(tree.argument, true);
+			case "HasExpression":
+				return {
+					[tree.argument.field.name]: {
+						$exists: false,
+					},
+				};
 		}
+	}
+
+	if (isHasExpression(tree)) {
+		return {
+			[tree.field.name]: {
+				$exists: true,
+			},
+		};
 	}
 
 	if (isMatchesExpression(tree)) {
@@ -144,6 +160,7 @@ function generateInQuery(
 		[tree.field.name]: isNotQuery ? { $not: expression } : expression,
 	};
 }
+
 function generateMatchesQuery(
 	tree: MatchesExpression,
 	isNotQuery = false,
