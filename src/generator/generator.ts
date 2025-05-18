@@ -4,6 +4,7 @@ import {
 	type ComparisonExpression,
 	type InExpression,
 	type MatchesExpression,
+	isAnyExpression,
 	isBitExpression,
 	isComparisonExpression,
 	isContainsExpression,
@@ -35,6 +36,7 @@ const mongoOperatorTable: Record<string, string> = {
 	ALL_SET: "$bitsAllSet",
 	ANY_CLEAR: "$bitsAnyClear",
 	ANY_SET: "$bitsAnySet",
+	ANY: "$elemMatch",
 } as const;
 
 function getOperator(operator: string) {
@@ -44,9 +46,9 @@ function getOperator(operator: string) {
 }
 
 // TODO:
-//     - HAS
-//     - IS
-//     - ANY
+//     - [ ] HAS
+//     - [ ] IS
+//     - [x] ANY
 export function generateQuery(tree: ASTNode): Filter<Document> {
 	if (isNotExpression(tree)) {
 		// TODO: $exists
@@ -96,6 +98,14 @@ export function generateQuery(tree: ASTNode): Filter<Document> {
 		return {
 			[tree.field.name]: {
 				$mod: [tree.divisor, tree.remainder],
+			},
+		};
+	}
+
+	if (isAnyExpression(tree)) {
+		return {
+			[tree.field.name]: {
+				$elemMatch: generateQuery(tree.condition),
 			},
 		};
 	}

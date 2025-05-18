@@ -88,11 +88,14 @@ describe("Generator", () => {
 
 	test("Test creating basic array queries", () => {
 		const inputs = [
-			// TODO: fix ANY first
-			// {
-			// 	inputString: "foo ANY > 5",
-			// 	expected: { foo: { $elemMatch: { $gt: 5 } } },
-			// },
+			{
+				inputString: "grades ANY score > 90",
+				expected: { grades: { $elemMatch: { score: { $gt: 90 } } } },
+			},
+			{
+				inputString: "tags ANY name = 'sale'",
+				expected: { tags: { $elemMatch: { name: { $eq: "sale" } } } },
+			},
 			{
 				inputString: "arrayField CONTAINS (11,2.3,'a string')",
 				expected: { arrayField: { $all: [11, 2.3, "a string"] } },
@@ -100,6 +103,10 @@ describe("Generator", () => {
 			{
 				inputString: "arrayField SIZE 10",
 				expected: { arrayField: { $size: 10 } },
+			},
+			{
+				inputString: "comments ANY replies SIZE 3",
+				expected: { comments: { $elemMatch: { replies: { $size: 3 } } } },
 			},
 		];
 
