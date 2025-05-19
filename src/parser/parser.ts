@@ -7,6 +7,7 @@ import {
 	type HasExpression,
 	type Identifier,
 	type InExpression,
+	type IsExpression,
 	type Literal,
 	type LogicalExpression,
 	type MatchesExpression,
@@ -290,6 +291,15 @@ export class Parser {
 						field: { type: "Identifier", name: fieldName },
 						condition: condition as ComparisonExpression,
 					} as AnyExpression;
+				}
+
+				if (this.currentToken.type === "IS") {
+					this.eat("IS");
+					return {
+						type: "IsExpression",
+						field: { type: "Identifier", name: fieldName },
+						typeKeyword: this.currentToken.literal,
+					} as IsExpression;
 				}
 
 				return {

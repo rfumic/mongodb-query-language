@@ -7,6 +7,7 @@ import {
 	isContainsExpression,
 	isHasExpression,
 	isInExpression,
+	isIsExpression,
 	isLogicalExpression,
 	isMatchesExpression,
 	isModExpression,
@@ -252,8 +253,41 @@ describe("Parser", () => {
 		const query = parser.parse();
 		expect(isHasExpression(query)).toBe(true);
 	});
+
+	test("Test IS", () => {
+		const inputs = [
+			"price IS double",
+			"name IS string",
+			"receipt IS object",
+			"list IS array",
+			"image IS binData",
+			"foo IS objectId",
+			"isAdmin IS bool",
+			"birthday IS date",
+			"bar IS null",
+			"pattern IS regex",
+			"code IS javascript",
+			"age IS int",
+			"createdOn IS timestamp",
+			"counter IS long",
+			"discount IS decimal",
+			"minimum IS minKey",
+			"maximum IS maxKey",
+		];
+
+		for (const input of inputs) {
+			const tokenizer = new Tokenizer(input);
+			const parser = new Parser(tokenizer);
+
+			const query = parser.parse();
+			testIsExpression(query);
+		}
+	});
 });
 
+function testIsExpression(query: ASTNode) {
+	expect(isIsExpression(query)).toBe(true);
+}
 function testComparisonExpression(query: ASTNode) {
 	expect(isComparisonExpression(query)).toBe(true);
 }

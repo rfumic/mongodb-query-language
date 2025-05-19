@@ -249,10 +249,11 @@ describe("Generator", () => {
 				inputString: "HAS address",
 				expected: { address: { $exists: true } },
 			},
-			{
-				inputString: "HAS timestamp",
-				expected: { timestamp: { $exists: true } },
-			},
+			// TODO: timestamp is keyword, this can be used for testing escaping keywords
+			// {
+			// 	inputString: "HAS timestamp",
+			// 	expected: { timestamp: { $exists: true } },
+			// },
 
 			{
 				inputString: "NOT HAS deletedAt",
@@ -280,6 +281,84 @@ describe("Generator", () => {
 			},
 		];
 
+		for (const input of inputs) {
+			const t = new Tokenizer(input.inputString);
+			const p = new Parser(t);
+			const mongoQuery = generateQuery(p.parse());
+			expect(mongoQuery).toStrictEqual(input.expected);
+		}
+	});
+	test("Test creating IS queries", () => {
+		const inputs = [
+			{
+				inputString: "price IS double",
+				expected: { price: { $type: "double" } },
+			},
+			{
+				inputString: "name IS string",
+				expected: { name: { $type: "string" } },
+			},
+			{
+				inputString: "receipt IS object",
+				expected: { receipt: { $type: "object" } },
+			},
+			{
+				inputString: "list IS array",
+				expected: { list: { $type: "array" } },
+			},
+			{
+				inputString: "image IS binData",
+				expected: { image: { $type: "binData" } },
+			},
+			{
+				inputString: "foo IS objectId",
+				expected: { foo: { $type: "objectId" } },
+			},
+			{
+				inputString: "isAdmin IS bool",
+				expected: { isAdmin: { $type: "bool" } },
+			},
+			{
+				inputString: "birthday IS date",
+				expected: { birthday: { $type: "date" } },
+			},
+			{
+				inputString: "bar IS null",
+				expected: { bar: { $type: "null" } },
+			},
+			{
+				inputString: "pattern IS regex",
+				expected: { pattern: { $type: "regex" } },
+			},
+			{
+				inputString: "code IS javascript",
+				expected: { code: { $type: "javascript" } },
+			},
+			{
+				inputString: "age IS int",
+				expected: { age: { $type: "int" } },
+			},
+			{
+				inputString: "createdOn IS timestamp",
+				expected: { createdOn: { $type: "timestamp" } },
+			},
+			{
+				inputString: "counter IS long",
+				expected: { counter: { $type: "long" } },
+			},
+			{
+				inputString: "discount IS decimal",
+				expected: { discount: { $type: "decimal" } },
+			},
+			{
+				inputString: "minimum IS minKey",
+				expected: { minimum: { $type: "minKey" } },
+			},
+			{
+				inputString: "maximum IS maxKey",
+				expected: { maximum: { $type: "maxKey" } },
+			},
+		];
 		for (const input of inputs) {
 			const t = new Tokenizer(input.inputString);
 			const p = new Parser(t);

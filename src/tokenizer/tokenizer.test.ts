@@ -213,7 +213,7 @@ describe("Tokenizer", () => {
 		const expectedTokens = [
 			{ expectedType: "FIELD", expectedLiteral: "foo" },
 			{ expectedType: "IS", expectedLiteral: "IS" },
-			{ expectedType: "INT_KEYWORD", expectedLiteral: "int" },
+			{ expectedType: "TYPE_KEYWORD", expectedLiteral: "int" },
 			{ expectedType: "AND", expectedLiteral: "AND" },
 			{ expectedType: "HAS", expectedLiteral: "HAS" },
 			{ expectedType: "FIELD", expectedLiteral: "bar" },

@@ -12,6 +12,7 @@ import {
 	isHasExpression,
 	isIdentifier,
 	isInExpression,
+	isIsExpression,
 	isLiteral,
 	isLogicalExpression,
 	isMatchesExpression,
@@ -48,10 +49,6 @@ function getOperator(operator: string) {
 	return result;
 }
 
-// TODO:
-//     - [x] HAS
-//     - [ ] IS
-//     - [x] ANY
 export function generateQuery(tree: ASTNode): Filter<Document> {
 	if (isNotExpression(tree)) {
 		switch (tree.argument.type) {
@@ -68,6 +65,14 @@ export function generateQuery(tree: ASTNode): Filter<Document> {
 					},
 				};
 		}
+	}
+
+	if (isIsExpression(tree)) {
+		return {
+			[tree.field.name]: {
+				$type: tree.typeKeyword,
+			},
+		};
 	}
 
 	if (isHasExpression(tree)) {

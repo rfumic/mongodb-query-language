@@ -1,3 +1,5 @@
+import { getIdentifierType } from "../tokenizer/token";
+
 export type ASTNode = {
 	type: string;
 };
@@ -176,6 +178,22 @@ export function isBitExpression(node: ASTNode): node is BitExpression {
 		n.field !== undefined &&
 		n.bits !== undefined &&
 		n.operator !== undefined
+	);
+}
+
+export type IsExpression = {
+	type: "IsExpression";
+	field: Identifier;
+	// NOTE: The actual type keyword e.g. `double`, `string`...
+	typeKeyword: string;
+};
+export function isIsExpression(node: ASTNode): node is IsExpression {
+	const n = node as IsExpression;
+	const identifierType = getIdentifierType(n.typeKeyword);
+	return (
+		n.type === "IsExpression" &&
+		n.field !== undefined &&
+		identifierType === "TYPE_KEYWORD"
 	);
 }
 
