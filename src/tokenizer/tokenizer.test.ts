@@ -374,6 +374,21 @@ describe("Tokenizer", () => {
 		];
 		testTokens(input2, expectedTokens2);
 	});
+
+	test("should tokenize nested fields", () => {
+		const input = `followers.name = "John" AND posts.likes > 12`;
+		const expectedTokens = [
+			{ expectedType: "FIELD", expectedLiteral: "followers.name" },
+			{ expectedType: "EQ", expectedLiteral: "=" },
+			{ expectedType: "STRING_LITERAL", expectedLiteral: "John" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "posts.likes" },
+			{ expectedType: "GT", expectedLiteral: ">" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "12" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+		testTokens(input, expectedTokens);
+	});
 });
 
 function testTokens(

@@ -9,6 +9,7 @@ describe("Generator", () => {
 			{ inputString: "age >= 18", expected: { age: { $gte: 18 } } },
 			{ inputString: "age < 18.11", expected: { age: { $lt: 18.11 } } },
 			{ inputString: "age <= 18", expected: { age: { $lte: 18 } } },
+			{ inputString: "user.age > 25", expected: { "user.age": { $gt: 25 } } },
 			{
 				inputString: "field1 > field2",
 				expected: { $expr: { $gt: ["field1", "field2"] } },
