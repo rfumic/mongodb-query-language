@@ -250,11 +250,10 @@ describe("Generator", () => {
 				inputString: "HAS address",
 				expected: { address: { $exists: true } },
 			},
-			// TODO: timestamp is keyword, this can be used for testing escaping keywords
-			// {
-			// 	inputString: "HAS timestamp",
-			// 	expected: { timestamp: { $exists: true } },
-			// },
+			{
+				inputString: "HAS [timestamp]",
+				expected: { timestamp: { $exists: true } },
+			},
 
 			{
 				inputString: "NOT HAS deletedAt",
