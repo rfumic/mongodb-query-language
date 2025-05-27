@@ -185,7 +185,7 @@ function generateComparisonQuery(
 
 	// Both sides are identifiers
 	if (isIdentifier(left) && isIdentifier(right)) {
-		const expression = { [op]: [`${left.name}`, `${right.name}`] };
+		const expression = { [op]: [`$${left.name}`, `$${right.name}`] };
 		return { $expr: isNotQuery ? { $not: [expression] } : expression };
 	}
 

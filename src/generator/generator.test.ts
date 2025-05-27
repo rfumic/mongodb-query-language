@@ -12,19 +12,19 @@ describe("Generator", () => {
 			{ inputString: "user.age > 25", expected: { "user.age": { $gt: 25 } } },
 			{
 				inputString: "field1 > field2",
-				expected: { $expr: { $gt: ["field1", "field2"] } },
+				expected: { $expr: { $gt: ["$field1", "$field2"] } },
 			},
 			{
 				inputString: "field1 >= field2",
-				expected: { $expr: { $gte: ["field1", "field2"] } },
+				expected: { $expr: { $gte: ["$field1", "$field2"] } },
 			},
 			{
 				inputString: "field1 < field2",
-				expected: { $expr: { $lt: ["field1", "field2"] } },
+				expected: { $expr: { $lt: ["$field1", "$field2"] } },
 			},
 			{
 				inputString: "field1 <= field2",
-				expected: { $expr: { $lte: ["field1", "field2"] } },
+				expected: { $expr: { $lte: ["$field1", "$field2"] } },
 			},
 			{
 				inputString: "field IN (11, 123.1, 'string')",
@@ -63,7 +63,7 @@ describe("Generator", () => {
 				inputString: "field1 > field2 AND bar = 8.1",
 				expected: {
 					$and: [
-						{ $expr: { $gt: ["field1", "field2"] } },
+						{ $expr: { $gt: ["$field1", "$field2"] } },
 						{ bar: { $eq: 8.1 } },
 					],
 				},
@@ -212,11 +212,11 @@ describe("Generator", () => {
 			},
 			{
 				inputString: "NOT field1 > field2",
-				expected: { $expr: { $not: [{ $gt: ["field1", "field2"] }] } },
+				expected: { $expr: { $not: [{ $gt: ["$field1", "$field2"] }] } },
 			},
 			{
 				inputString: "NOT field1 >= field2",
-				expected: { $expr: { $not: [{ $gte: ["field1", "field2"] }] } },
+				expected: { $expr: { $not: [{ $gte: ["$field1", "$field2"] }] } },
 			},
 			{
 				inputString: "NOT field IN (11, 123.1, 'string')",
