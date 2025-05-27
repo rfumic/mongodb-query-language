@@ -367,4 +367,40 @@ describe("Generator", () => {
 			expect(mongoQuery).toStrictEqual(input.expected);
 		}
 	});
+
+	test("Test escaping field names using brackets", () => {
+		const inputs = [
+			{
+				inputString: "[AND] = 10",
+				expected: { AND: { $eq: 10 } },
+			},
+			{
+				inputString: "[OR] = 11",
+				expected: { OR: { $eq: 11 } },
+			},
+			{
+				inputString: "HAS [timestamp]",
+				expected: { timestamp: { $exists: true } },
+			},
+			{
+				inputString: "NOT HAS [timestamp]",
+				expected: { timestamp: { $exists: false } },
+			},
+			{
+				inputString: '[user.name] = "Ivan"',
+				expected: { "user.name": { $eq: "Ivan" } },
+			},
+			{
+				inputString: "[field.with.dots] IN (1, 2)",
+				expected: { "field.with.dots": { $in: [1, 2] } },
+			},
+		];
+
+		for (const input of inputs) {
+			const t = new Tokenizer(input.inputString);
+			const p = new Parser(t);
+			const mongoQuery = generateQuery(p.parse());
+			expect(mongoQuery).toStrictEqual(input.expected);
+		}
+	});
 });

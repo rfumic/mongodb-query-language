@@ -389,6 +389,29 @@ describe("Tokenizer", () => {
 		];
 		testTokens(input, expectedTokens);
 	});
+	test("should treat escaped keywords as FIELD identifiers", () => {
+		const input = "[AND] = 1 AND [OR] = 2 AND [MATCHES] = 3 AND [BIT] = 4";
+		const expectedTokens = [
+			{ expectedType: "FIELD", expectedLiteral: "AND" },
+			{ expectedType: "EQ", expectedLiteral: "=" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "1" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "OR" },
+			{ expectedType: "EQ", expectedLiteral: "=" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "2" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "MATCHES" },
+			{ expectedType: "EQ", expectedLiteral: "=" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "3" },
+			{ expectedType: "AND", expectedLiteral: "AND" },
+			{ expectedType: "FIELD", expectedLiteral: "BIT" },
+			{ expectedType: "EQ", expectedLiteral: "=" },
+			{ expectedType: "INT_LITERAL", expectedLiteral: "4" },
+			{ expectedType: "EOF", expectedLiteral: "" },
+		];
+
+		testTokens(input, expectedTokens);
+	});
 });
 
 function testTokens(

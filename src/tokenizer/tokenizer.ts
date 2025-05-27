@@ -96,6 +96,13 @@ export class Tokenizer {
 					return this.readNumber();
 				}
 
+				if (this.currentChar === "[") {
+					this.readChar();
+					const literal = this.readIdentifier(true);
+					token = { type: "FIELD", literal: literal };
+					return token;
+				}
+
 				if (isLetter(this.currentChar)) {
 					const literal = this.readIdentifier();
 					token = { type: getIdentifierType(literal), literal: literal };
@@ -108,12 +115,30 @@ export class Tokenizer {
 		this.readChar();
 		return token;
 	}
-	private readIdentifier() {
-		const position = this.currentCharPosition;
-		while (isLetter(this.currentChar) || isDigit(this.currentChar)) {
+	private readIdentifier(isEscapedKeyword = false) {
+		const shouldContinue = () => {
+			return (
+				isLetter(this.currentChar) ||
+				isDigit(this.currentChar) ||
+				(this.currentChar !== "]") === isEscapedKeyword
+			);
+		};
+
+		const startPosition = this.currentCharPosition;
+		while (shouldContinue()) {
 			this.readChar();
 		}
-		return this.input.substring(position, this.currentCharPosition);
+
+		if (isEscapedKeyword) {
+			const identifier = this.input.substring(
+				startPosition,
+				this.currentCharPosition,
+			);
+			this.readChar(); // Consume `]`
+			return identifier;
+		}
+
+		return this.input.substring(startPosition, this.currentCharPosition);
 	}
 
 	private readString(stringDelimiter = '"') {
